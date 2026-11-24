@@ -13,6 +13,7 @@ import {
   Copy,
   Check,
   Zap,
+  Search,
 } from 'lucide-react';
 import jsQR from 'jsqr';
 import { toast } from 'sonner';
@@ -62,7 +63,11 @@ function playScanChime() {
 
 export function PucScannerPanel({ onExtracted }: PucScannerPanelProps) {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'qr' | 'pdf' | 'photo'>('qr');
+  const [activeTab, setActiveTab] = useState<'vahan' | 'qr' | 'pdf' | 'photo'>('vahan');
+
+  // 1. Single-Field VAHAN Vehicle Lookup
+  const [vahanInput, setVahanInput] = useState('');
+  const [vahanLoading, setVahanLoading] = useState(false);
 
   // QR Camera State
   const [cameraActive, setCameraActive] = useState(false);
@@ -120,6 +125,37 @@ export function PucScannerPanel({ onExtracted }: PucScannerPanelProps) {
     toast.success(`Extracted: ${data.regNumber || 'PUC details'}`, {
       description: `Auto-filled from ${source}`,
     });
+  };
+
+  // -------------------------------------------------------------
+  // TAB 0: VAHAN / RTO VEHICLE LOOKUP (Just Enter Vehicle Number)
+  // -------------------------------------------------------------
+  const handleVahanLookup = async (overridePlate?: string, e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const target = overridePlate || vahanInput;
+    const clean = target.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (!clean || clean.length < 5) {
+      toast.error('Please enter a valid vehicle plate (e.g. GJ01AB1234)');
+      return;
+    }
+
+    setVahanLoading(true);
+    try {
+      const res = await apiRequest<{
+        ok: boolean;
+        data: ExtractedPucData & { source?: string; rtoLocation?: string };
+      }>(`/api/scanner/lookup-vehicle?regNumber=${encodeURIComponent(clean)}`);
+
+      if (res.ok && res.data) {
+        handleSuccess(res.data, res.data.source || 'VAHAN / RTO Database');
+        setVahanInput('');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch vehicle details';
+      toast.error(msg);
+    } finally {
+      setVahanLoading(false);
+    }
   };
 
   // -------------------------------------------------------------
@@ -311,29 +347,45 @@ export function PucScannerPanel({ onExtracted }: PucScannerPanelProps) {
             <Zap className="h-3.5 w-3.5" />
           </div>
           <span className="text-xs font-semibold text-slate-900 dark:text-white">
-            1-Click Auto-Fill from PUC Slip
+            1-Click Auto-Fill Details
           </span>
           <Badge variant="outline" className="text-[10px] py-0 px-1.5 text-emerald-600 border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30">
-            3 Instant Ways
+            VAHAN API Ready
           </Badge>
         </div>
 
         {/* Segmented Option Selector */}
-        <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700/80">
+        <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700/80 overflow-x-auto scrollbar-none">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('vahan');
+              stopCamera();
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'vahan'
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span>1. Vehicle No (VAHAN)</span>
+          </button>
+
           <button
             type="button"
             onClick={() => {
               setActiveTab('qr');
               stopCamera();
             }}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'qr'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <QrCode className="h-3.5 w-3.5" />
-            <span>1. Scan QR</span>
+            <span>2. Scan QR</span>
           </button>
 
           <button
@@ -342,14 +394,14 @@ export function PucScannerPanel({ onExtracted }: PucScannerPanelProps) {
               setActiveTab('pdf');
               stopCamera();
             }}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'pdf'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <FileText className="h-3.5 w-3.5" />
-            <span>2. Parivahan PDF</span>
+            <span>3. Parivahan PDF</span>
           </button>
 
           <button
@@ -358,14 +410,14 @@ export function PucScannerPanel({ onExtracted }: PucScannerPanelProps) {
               setActiveTab('photo');
               stopCamera();
             }}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'photo'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Camera className="h-3.5 w-3.5" />
-            <span>3. Photo & WhatsApp</span>
+            <span>4. Photo & Bot</span>
           </button>
         </div>
       </div>
@@ -384,6 +436,66 @@ export function PucScannerPanel({ onExtracted }: PucScannerPanelProps) {
           >
             Clear
           </button>
+        </div>
+      )}
+
+      {/* ----------------------------------------------------------- */}
+      {/* TAB 0: VAHAN / RTO VEHICLE LOOKUP (Just Enter Vehicle Number) */}
+      {/* ----------------------------------------------------------- */}
+      {activeTab === 'vahan' && (
+        <div className="space-y-2.5 pt-1">
+          <form onSubmit={(e) => handleVahanLookup(undefined, e)} className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <Input
+                value={vahanInput}
+                onChange={(e) => setVahanInput(e.target.value)}
+                placeholder="Enter Vehicle Plate (e.g. GJ 01 AB 1234)"
+                className="pl-9 h-10 font-mono uppercase font-bold text-sm tracking-wide bg-white dark:bg-slate-900"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={vahanLoading || !vahanInput.trim()}
+              className="h-10 px-4 font-bold text-xs gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 cursor-pointer shadow-xs"
+            >
+              {vahanLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Fetching Details...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4" />
+                  Auto-Fetch Everything
+                </>
+              )}
+            </Button>
+          </form>
+
+          {/* Quick presets & hint */}
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+            <span>
+              ⚡ Pulls <b>Owner Name</b>, <b>Vehicle Model</b>, <b>Fuel Type</b>, and <b>Expiry Dates</b>.
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] uppercase font-semibold text-slate-400">Quick Test:</span>
+              <button
+                type="button"
+                onClick={() => handleVahanLookup('GJ01AB1234')}
+                className="font-mono text-[10px] bg-slate-200/70 dark:bg-slate-800 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              >
+                GJ01AB1234
+              </button>
+              <button
+                type="button"
+                onClick={() => handleVahanLookup('GJ05CD5678')}
+                className="font-mono text-[10px] bg-slate-200/70 dark:bg-slate-800 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              >
+                GJ05CD5678
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

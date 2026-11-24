@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   QrCode,
   FileText,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiRequest } from '../lib/api';
@@ -280,6 +281,33 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
     if (extracted.issueDate) setIssueDate(extracted.issueDate);
     if (extracted.expiryDate) setExpiryDate(extracted.expiryDate);
     if (extracted.certificateNumber) setCertNumber(extracted.certificateNumber);
+  };
+
+  const [inlineLookupLoading, setInlineLookupLoading] = useState(false);
+
+  const handleInlinePlateLookup = async (plate: string) => {
+    const clean = plate.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (!clean || clean.length < 5) {
+      toast.error('Please enter a valid vehicle plate (e.g. GJ01AB1234)');
+      return;
+    }
+    setInlineLookupLoading(true);
+    try {
+      const res = await apiRequest<{ ok: boolean; data: ExtractedPucData & { source?: string } }>(
+        `/api/scanner/lookup-vehicle?regNumber=${encodeURIComponent(clean)}`,
+      );
+      if (res.ok && res.data) {
+        handleScanAutoFill(res.data);
+        toast.success(`Fetched details for ${res.data.regNumber}`, {
+          description: `${res.data.fullName || 'Customer'} • ${res.data.makeModel || ''}`,
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lookup failed';
+      toast.error(msg);
+    } finally {
+      setInlineLookupLoading(false);
+    }
   };
 
   const handleSaveCustomer = async (e: React.FormEvent) => {
@@ -1077,15 +1105,43 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="veh-plate">{t('vehiclePlate')} *</Label>
-                  <Input
-                    id="veh-plate"
-                    value={regNumber}
-                    onChange={(e) => setRegNumber(e.target.value)}
-                    placeholder={t('vehiclePlatePlaceholder')}
-                    className="font-mono uppercase font-bold"
-                    required
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="veh-plate">{t('vehiclePlate')} *</Label>
+                    <button
+                      type="button"
+                      onClick={() => handleInlinePlateLookup(regNumber)}
+                      disabled={inlineLookupLoading || !regNumber || regNumber.length < 5}
+                      className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Zap className="h-3 w-3" />
+                      Auto-Fetch
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      id="veh-plate"
+                      value={regNumber}
+                      onChange={(e) => setRegNumber(e.target.value)}
+                      placeholder={t('vehiclePlatePlaceholder')}
+                      className="font-mono uppercase font-bold text-sm tracking-wide"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleInlinePlateLookup(regNumber)}
+                      disabled={inlineLookupLoading || !regNumber || regNumber.length < 5}
+                      className="h-9 px-3 text-xs font-semibold shrink-0 gap-1 border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/60 cursor-pointer"
+                    >
+                      {inlineLookupLoading ? (
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Search className="h-3.5 w-3.5" />
+                      )}
+                      Fetch
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
