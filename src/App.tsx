@@ -1,5 +1,4 @@
-import React, { useMemo, useState } from 'react';
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import React, { useState } from 'react';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { I18nProvider } from './context/I18nContext';
@@ -7,22 +6,19 @@ import { AuthScreen } from './components/auth/AuthScreen';
 import { AppShell, type NavRoute } from './components/layout/AppShell';
 import { DashboardView } from './views/DashboardView';
 import { SettingsView } from './views/SettingsView';
-import { getAppTheme } from './theme/theme';
 
 function WorkspaceRouter() {
   const { isAuthenticated, theme } = useAuth();
   const [route, setRoute] = useState<NavRoute>('dashboard');
 
   const paletteMode = theme === 'light' ? 'light' : 'dark';
-  const muiTheme = useMemo(() => getAppTheme(paletteMode), [paletteMode]);
 
   if (!isAuthenticated) {
     return (
-      <ThemeProvider theme={muiTheme}>
-        <CssBaseline />
+      <>
         <AuthScreen />
         <Toaster position="bottom-right" richColors theme={paletteMode} />
-      </ThemeProvider>
+      </>
     );
   }
 
@@ -38,13 +34,12 @@ function WorkspaceRouter() {
   };
 
   return (
-    <ThemeProvider theme={muiTheme}>
-      <CssBaseline />
+    <>
       <AppShell activeRoute={route} onNavigate={setRoute}>
         {renderView()}
       </AppShell>
       <Toaster position="bottom-right" richColors theme={paletteMode} />
-    </ThemeProvider>
+    </>
   );
 }
 

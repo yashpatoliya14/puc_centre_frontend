@@ -1,38 +1,37 @@
 import React, { useState } from 'react';
 import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Divider,
-  FormControlLabel,
-  IconButton,
-  InputAdornment,
-  Switch,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
-} from '@mui/material';
-import {
-  DirectionsCar,
-  LockOutlined,
-  MailOutlined,
-  PersonOutlined,
-  PhoneIphone,
-  StorefrontOutlined,
-  Visibility,
-  VisibilityOff,
-  Brightness4,
-  Brightness7,
-  FlashOn,
-  Security,
-} from '@mui/icons-material';
+  Car,
+  Sparkles,
+  PhoneCall,
+  MessageSquare,
+  ShieldCheck,
+  CheckCircle2,
+  Zap,
+  Building2,
+  User,
+  Mail,
+  Phone,
+  Lock,
+  Eye,
+  EyeOff,
+  Sun,
+  Moon,
+  ArrowRight,
+  MapPin,
+  Flame,
+  Radio,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { apiRequest } from '../../lib/api';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
+import { Badge } from '../ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+import { Alert, AlertDescription } from '../ui/alert';
 
 type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
@@ -142,362 +141,444 @@ export function AuthScreen() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2.5,
-        background: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0b0f19 75%)'
-            : 'radial-gradient(circle at 50% 0%, #e0e7ff 0%, #f8fafc 75%)',
-      }}
-    >
-      {/* Theme Toggle Top Right */}
-      <Box sx={{ position: 'absolute', top: 20, right: 20 }}>
-        <IconButton
-          onClick={() => applyTheme(theme === 'dark' ? 'light' : 'dark', true)}
-          sx={{
-            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'),
-          }}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-6 lg:p-10 relative overflow-hidden">
+      {/* Decorative background glow circles */}
+      <div className="absolute top-1/4 -left-48 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Top right floating theme switch */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={() => applyTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="rounded-full shadow-xs border-slate-200 dark:border-slate-800"
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
         >
-          {theme === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
-        </IconButton>
-      </Box>
+          {theme === 'dark' ? (
+            <Sun className="h-4 w-4 text-amber-400" />
+          ) : (
+            <Moon className="h-4 w-4 text-slate-700" />
+          )}
+        </Button>
+      </div>
 
-      <Card
-        sx={{
-          maxWidth: 460,
-          width: '100%',
-          p: { xs: 2.5, sm: 3.5 },
-          borderRadius: 4,
-          boxShadow: (t) =>
-            t.palette.mode === 'dark'
-              ? '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
-              : '0 25px 50px -12px rgba(79, 70, 229, 0.15)',
-        }}
-      >
-        <CardContent sx={{ p: 0 }}>
-          {/* Logo & Header */}
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Box
-              sx={{
-                width: 52,
-                height: 52,
-                borderRadius: 3,
-                bgcolor: 'primary.main',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                mb: 1.5,
-                boxShadow: '0 8px 16px rgba(79, 70, 229, 0.35)',
-              }}
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
+        {/* Left column: Brand Hero & Value proposition */}
+        <div className="lg:col-span-5 space-y-6 text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 dark:bg-indigo-950/60 dark:border-indigo-900/60 dark:text-indigo-400 text-xs font-semibold">
+            <Radio className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
+            <span>Automated IVR Voice Engine v2.0</span>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <Car className="h-7 w-7" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+                PUC Flow
+              </h1>
+            </div>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+              Automated PUC & Insurance renewal platform built for Indian vehicle testing centres.
+            </p>
+          </div>
+
+          {/* Key Feature Highlights */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xs">
+              <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                <PhoneCall className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  Automated Exotel Calling
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Instant outbound reminder calls in Gujarati & Hindi upon registration and expiry.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xs">
+              <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  WhatsApp Direct Dispatch
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Formatted WhatsApp renewal alerts with center directions and expiry details.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xs">
+              <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  TRAI Telecom Compliant
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Strict 09:30 - 19:30 calling windows with automated retry throttles and audit trails.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Demo Button */}
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="w-full border-indigo-200 dark:border-indigo-900/80 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100/60 text-indigo-700 dark:text-indigo-300 font-bold gap-2 cursor-pointer shadow-xs"
             >
-              <DirectionsCar fontSize="medium" />
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 800 }}>
-              PucFlow
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              PUC & Insurance Renewal Automation SaaS
-            </Typography>
-          </Box>
+              <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>One-Click Demo Center Login</span>
+              <ArrowRight className="w-4 h-4 ml-auto" />
+            </Button>
+          </div>
+        </div>
 
-          {/* Quick Demo Login Button */}
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={handleDemoLogin}
-            disabled={loading}
-            startIcon={<FlashOn sx={{ color: 'warning.main' }} />}
-            sx={{
-              mb: 3,
-              py: 1.2,
-              borderRadius: 2.5,
-              borderColor: 'primary.main',
-              bgcolor: (t) =>
-                t.palette.mode === 'dark' ? 'rgba(79, 70, 229, 0.12)' : 'rgba(79, 70, 229, 0.05)',
-              '&:hover': {
-                bgcolor: (t) =>
-                  t.palette.mode === 'dark' ? 'rgba(79, 70, 229, 0.2)' : 'rgba(79, 70, 229, 0.1)',
-              },
-            }}
-          >
-            One-Click Login with Demo Account
-          </Button>
+        {/* Right column: Auth Card with Tabs */}
+        <div className="lg:col-span-7">
+          <Card className="border-slate-200/80 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900/95">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-bold">
+                    {mode === 'login' && 'Sign In to Your Center'}
+                    {mode === 'register' && 'Register New PUC Center'}
+                    {mode === 'forgot' && 'Reset Password'}
+                    {mode === 'reset' && 'Set New Password'}
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-1">
+                    {mode === 'login' && 'Enter your credentials to access vehicle records and voice automations.'}
+                    {mode === 'register' && 'Set up your testing centre profile and start automated voice reminders.'}
+                    {mode === 'forgot' && 'Enter your registered email to receive password recovery token.'}
+                    {mode === 'reset' && 'Enter the reset token sent to your email with your new password.'}
+                  </CardDescription>
+                </div>
+              </div>
 
-          <Divider sx={{ mb: 2.5 }}>
-            <Typography variant="caption" color="text.secondary">
-              OR LOGIN WITH CREDENTIALS
-            </Typography>
-          </Divider>
+              {/* Mode Switcher Tabs */}
+              {(mode === 'login' || mode === 'register') && (
+                <div className="pt-3">
+                  <Tabs value={mode} onValueChange={(val) => setMode(val as AuthMode)} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="login" className="font-semibold text-xs">
+                        Sign In
+                      </TabsTrigger>
+                      <TabsTrigger value="register" className="font-semibold text-xs">
+                        Register Center
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+              )}
+            </CardHeader>
 
-          {/* Tabs: Sign In / Register */}
-          <Tabs
-            value={mode === 'register' ? 1 : 0}
-            onChange={(_, val) => setMode(val === 1 ? 'register' : 'login')}
-            variant="fullWidth"
-            sx={{
-              mb: 3,
-              minHeight: 40,
-              bgcolor: (t) =>
-                t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-              borderRadius: 2,
-              p: 0.5,
-              '& .MuiTabs-indicator': { display: 'none' },
-              '& .MuiTab-root': {
-                borderRadius: 1.5,
-                minHeight: 34,
-                py: 0.5,
-                fontWeight: 600,
-                fontSize: '0.8125rem',
-                '&.Mui-selected': {
-                  bgcolor: 'background.paper',
-                  color: 'primary.main',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                },
-              },
-            }}
-          >
-            <Tab label="Sign In" />
-            <Tab label="New PUC Centre" />
-          </Tabs>
+            <CardContent className="space-y-4 pt-0">
+              {/* LOGIN FORM */}
+              {mode === 'login' && (
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-email">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="login-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="owner@ganeshpuc.com"
+                        className="pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
 
-          {/* Mode: LOGIN */}
-          {mode === 'login' && (
-            <Box component="form" onSubmit={handleLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="owner@pucflow.in"
-                required
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MailOutlined fontSize="small" color="action" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="login-password">Password</Label>
+                      <button
+                        type="button"
+                        onClick={() => setMode('forgot')}
+                        className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="pl-9 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-              <TextField
-                fullWidth
-                size="small"
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                required
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockOutlined fontSize="small" color="action" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton size="small" onClick={() => setShowPassword(!showPassword)} edge="end">
-                          {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full font-bold shadow-md shadow-indigo-600/20 gap-2 cursor-pointer"
+                    size="lg"
+                  >
+                    {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </form>
+              )}
 
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  size="small"
-                  variant="text"
-                  onClick={() => setMode('forgot')}
-                  sx={{ fontSize: '0.75rem', p: 0 }}
-                >
-                  Forgot password?
-                </Button>
-              </Box>
+              {/* REGISTER FORM */}
+              {mode === 'register' && (
+                <form onSubmit={handleRegister} className="space-y-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="reg-center">PUC Center Name *</Label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          id="reg-center"
+                          value={businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                          placeholder="e.g. Maruti PUC Center"
+                          className="pl-9"
+                          required
+                        />
+                      </div>
+                    </div>
 
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                sx={{ py: 1.2, mt: 1, borderRadius: 2.5 }}
-              >
-                {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign In to Dashboard'}
-              </Button>
-            </Box>
-          )}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="reg-owner">Owner Full Name *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          id="reg-owner"
+                          value={ownerName}
+                          onChange={(e) => setOwnerName(e.target.value)}
+                          placeholder="e.g. Rajeshbhai Patel"
+                          className="pl-9"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Mode: REGISTER */}
-          {mode === 'register' && (
-            <Box component="form" onSubmit={handleRegister} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Centre Business Name"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="e.g. Shree Ganesh Auto PUC"
-                required
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <StorefrontOutlined fontSize="small" color="action" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="reg-mobile">10-Digit Mobile *</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          id="reg-mobile"
+                          value={mobileNumber}
+                          onChange={(e) => setMobileNumber(e.target.value)}
+                          placeholder="9876543210"
+                          className="pl-9 font-mono"
+                          required
+                        />
+                      </div>
+                    </div>
 
-              <TextField
-                fullWidth
-                size="small"
-                label="Owner / Operator Name"
-                value={ownerName}
-                onChange={(e) => setOwnerName(e.target.value)}
-                placeholder="e.g. Ramesh Patel"
-                required
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonOutlined fontSize="small" color="action" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="reg-email">Email Address *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          id="reg-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="owner@example.com"
+                          className="pl-9"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-              <TextField
-                fullWidth
-                size="small"
-                label="Mobile Number (10 Digits)"
-                value={mobileNumber}
-                onChange={(e) => setMobileNumber(e.target.value)}
-                placeholder="7043333359"
-                required
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PhoneIphone fontSize="small" color="action" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="reg-password">Password (min 8 chars) *</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="reg-password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="pl-9 pr-10"
+                        required
+                        minLength={8}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-              <TextField
-                fullWidth
-                size="small"
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="operator@centre.com"
-                required
-              />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="reg-address">Center Location / Address (Optional)</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="reg-address"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="e.g. Ring Road, Surat, Gujarat"
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
 
-              <TextField
-                fullWidth
-                size="small"
-                label="Password (min 8 chars)"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+                  {/* Preload sample data switch */}
+                  <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                        Preload Demo Customers & Vehicles
+                      </span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                        Seeds sample vehicles with upcoming expirations to test automated calls immediately.
+                      </span>
+                    </div>
+                    <Switch
+                      checked={preloadSampleData}
+                      onCheckedChange={setPreloadSampleData}
+                    />
+                  </div>
 
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={preloadSampleData}
-                    onChange={(e) => setPreloadSampleData(e.target.checked)}
-                    color="primary"
-                    size="small"
-                  />
-                }
-                label={<Typography variant="caption">Preload realistic sample customer data</Typography>}
-              />
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full font-bold shadow-md shadow-indigo-600/20 gap-2 cursor-pointer"
+                    size="lg"
+                  >
+                    {loading ? 'Creating Account...' : 'Register & Launch PUC Center'}
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </form>
+              )}
 
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                sx={{ py: 1.2, borderRadius: 2.5 }}
-              >
-                {loading ? <CircularProgress size={22} color="inherit" /> : 'Create Centre Account'}
-              </Button>
-            </Box>
-          )}
+              {/* FORGOT PASSWORD FORM */}
+              {mode === 'forgot' && (
+                <form onSubmit={handleForgot} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="forgot-email">Registered Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="owner@example.com"
+                        className="pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
 
-          {/* Mode: FORGOT PASSWORD */}
-          {mode === 'forgot' && (
-            <Box component="form" onSubmit={handleForgot} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Enter your registered email address to receive a secure reset link.
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Button fullWidth type="submit" variant="contained" disabled={loading} sx={{ py: 1.2 }}>
-                {loading ? <CircularProgress size={22} color="inherit" /> : 'Send Reset Link'}
-              </Button>
-              <Button fullWidth variant="text" size="small" onClick={() => setMode('login')}>
-                Back to Sign In
-              </Button>
-            </Box>
-          )}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setMode('login')}
+                      className="w-1/3"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-2/3 font-bold"
+                    >
+                      {loading ? 'Sending...' : 'Send Reset Code'}
+                    </Button>
+                  </div>
+                </form>
+              )}
 
-          {/* Mode: RESET PASSWORD */}
-          {mode === 'reset' && (
-            <Box component="form" onSubmit={handleReset} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Alert severity="info" sx={{ fontSize: '0.8rem' }}>
-                Reset token generated! Enter your new password below.
-              </Alert>
-              <TextField
-                fullWidth
-                size="small"
-                label="Reset Token"
-                value={resetToken}
-                onChange={(e) => setResetToken(e.target.value)}
-                required
-              />
-              <TextField
-                fullWidth
-                size="small"
-                label="New Password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-              <Button fullWidth type="submit" variant="contained" disabled={loading} sx={{ py: 1.2 }}>
-                {loading ? <CircularProgress size={22} color="inherit" /> : 'Update Password'}
-              </Button>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
+              {/* RESET PASSWORD FORM */}
+              {mode === 'reset' && (
+                <form onSubmit={handleReset} className="space-y-4">
+                  <Alert variant="info" className="py-2.5">
+                    <AlertDescription>
+                      Verification token loaded. Set your new security password below.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="reset-token">Reset Token</Label>
+                    <Input
+                      id="reset-token"
+                      value={resetToken}
+                      onChange={(e) => setResetToken(e.target.value)}
+                      placeholder="Paste reset token"
+                      className="font-mono text-xs"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Minimum 8 characters"
+                      required
+                      minLength={8}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setMode('login')}
+                      className="w-1/3"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-2/3 font-bold"
+                    >
+                      {loading ? 'Saving...' : 'Set New Password'}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
