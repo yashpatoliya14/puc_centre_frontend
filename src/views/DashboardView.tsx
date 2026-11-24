@@ -154,6 +154,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   const [whatsappPreview, setWhatsappPreview] = useState<string>('');
   const [whatsappUrl, setWhatsappUrl] = useState<string>('');
   const [loadingWhatsapp, setLoadingWhatsapp] = useState(false);
+  const [sendingApiWhatsapp, setSendingApiWhatsapp] = useState(false);
 
   // Customer modal state (Create / Edit)
   const [modalOpen, setModalOpen] = useState(false);
@@ -420,6 +421,33 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       setWhatsappCustomer(null);
     } finally {
       setLoadingWhatsapp(false);
+    }
+  };
+
+  const handleSendApiWhatsApp = async () => {
+    if (!whatsappCustomer) return;
+    setSendingApiWhatsapp(true);
+    try {
+      const res = await apiRequest<{ ok: boolean; messageId: string; template: string }>(
+        `/api/customers/${whatsappCustomer.id}/send-whatsapp`,
+        {
+          method: 'POST',
+          body: { reminderType: whatsappType },
+        },
+      );
+      if (res.ok) {
+        toast.success(`Message dispatched via WhatsApp Cloud API!`, {
+          description: `Template: ${res.template} • ID: ${res.messageId ? res.messageId.slice(0, 16) + '...' : 'Delivered'}`,
+        });
+        setWhatsappCustomer(null);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to send WhatsApp message';
+      toast.error(msg, {
+        description: 'You can also click "Open in WhatsApp" to deliver directly from your device.',
+      });
+    } finally {
+      setSendingApiWhatsapp(false);
     }
   };
 
@@ -1379,17 +1407,34 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               Close
             </Button>
 
-            {whatsappUrl && (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#1EBE5D] text-white font-semibold text-xs shadow-2xs"
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSendApiWhatsApp}
+                disabled={sendingApiWhatsapp || loadingWhatsapp}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-2xs cursor-pointer disabled:opacity-50"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Open in WhatsApp
-              </a>
-            )}
+                {sendingApiWhatsapp ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Zap className="w-3.5 h-3.5" />
+                )}
+                <span>Send via Meta API</span>
+              </Button>
+
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#1EBE5D] text-white font-semibold text-xs shadow-2xs"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Open in WhatsApp
+                </a>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
