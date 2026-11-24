@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { apiRequest, setAuthToken, setUnauthorizedHandler } from '../lib/api';
+import { apiRequest, setAuthToken, getAuthToken, setUnauthorizedHandler } from '../lib/api';
 
 export type ThemePreference = 'dark' | 'light' | 'system';
 
@@ -51,6 +51,7 @@ interface AuthContextValue {
   runtime: RuntimeInfo | null;
   theme: ThemePreference;
   isAuthenticated: boolean;
+  loadingInitial: boolean;
   login: (email: string, password: string) => Promise<void>;
   demoLogin: () => Promise<void>;
   register: (payload: {
@@ -84,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [tenant, setTenant] = useState<AuthTenant | null>(null);
   const [runtime, setRuntime] = useState<RuntimeInfo | null>(null);
   const [theme, setTheme] = useState<ThemePreference>('dark');
+  const [loadingInitial, setLoadingInitial] = useState(true);
 
   useEffect(() => {
     resolveAndApplyDomTheme(theme);
@@ -114,6 +116,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTheme(pref);
     resolveAndApplyDomTheme(pref);
   }, []);
+
+  // Restore authenticated session on page refresh (valid for 1 month)
+  useEffect(() => {
+    const token = getAuthToken();
+    if (token) {
+      apiRequest<{ user: AuthUser; tenant: AuthTenant; runtime: RuntimeInfo }>('/api/auth/me')
+        .then((res) => {
+          hydrate(res);
+        })
+        .catch(() => {
+          clearSession();
+        })
+        .finally(() => {
+          setLoadingInitial(false);
+        });
+    } else {
+      setLoadingInitial(false);
+    }
+  }, [hydrate, clearSession]);
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -193,6 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         runtime,
         theme,
         isAuthenticated: Boolean(user && tenant),
+        loadingInitial,
         login,
         demoLogin,
         register,

@@ -8,10 +8,18 @@ import { DashboardView } from './views/DashboardView';
 import { SettingsView } from './views/SettingsView';
 
 function WorkspaceRouter() {
-  const { isAuthenticated, theme } = useAuth();
+  const { isAuthenticated, loadingInitial, theme } = useAuth();
   const [route, setRoute] = useState<NavRoute>('dashboard');
 
   const paletteMode = theme === 'light' ? 'light' : 'dark';
+
+  if (loadingInitial) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-slate-700 border-t-indigo-600 animate-spin" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

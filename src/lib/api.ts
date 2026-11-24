@@ -1,13 +1,24 @@
-// Centralized API client holding Bearer token strictly in memory (never localStorage)
+const STORAGE_KEY = 'pucflow_token';
 
-let inMemoryAuthToken: string | null = null;
+let inMemoryAuthToken: string | null =
+  typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
 let onUnauthorizedCallback: (() => void) | null = null;
 
 export function setAuthToken(token: string | null): void {
   inMemoryAuthToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem(STORAGE_KEY, token);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
 }
 
 export function getAuthToken(): string | null {
+  if (!inMemoryAuthToken && typeof window !== 'undefined') {
+    inMemoryAuthToken = localStorage.getItem(STORAGE_KEY);
+  }
   return inMemoryAuthToken;
 }
 
