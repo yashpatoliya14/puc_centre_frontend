@@ -282,6 +282,13 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
     if (extracted.issueDate) setIssueDate(extracted.issueDate);
     if (extracted.expiryDate) setExpiryDate(extracted.expiryDate);
     if (extracted.certificateNumber) setCertNumber(extracted.certificateNumber);
+    if (extracted.insuranceCompany) {
+      setHasInsurance(true);
+      setInsuranceCompany(extracted.insuranceCompany);
+      if (extracted.insuranceExpiry) {
+        setInsExpiryDate(extracted.insuranceExpiry);
+      }
+    }
   };
 
   const [inlineLookupLoading, setInlineLookupLoading] = useState(false);
@@ -1059,14 +1066,21 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
       {/* 5. CREATE / EDIT CUSTOMER DIALOG */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-5 sm:p-6">
+        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[92vh] overflow-y-auto p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
           <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-            <DialogTitle className="text-base font-bold">
-              {editingCustomer ? `Edit Customer: ${editingCustomer.fullName}` : t('addCustomerTitle')}
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              {t('addCustomerDesc')}
-            </DialogDescription>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs">
+                <Car className="h-4 w-4" />
+              </div>
+              <div>
+                <DialogTitle className="text-base sm:text-lg font-bold">
+                  {editingCustomer ? `Edit Customer: ${editingCustomer.fullName}` : t('addCustomerTitle')}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  {editingCustomer ? 'Update customer and vehicle certificate specs' : 'Auto-fill from vehicle number, PDF, or image, then confirm details'}
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
           <form onSubmit={handleSaveCustomer} className="space-y-4 pt-1">
