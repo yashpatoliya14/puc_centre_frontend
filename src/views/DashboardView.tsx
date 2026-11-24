@@ -1122,6 +1122,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                       id="veh-plate"
                       value={regNumber}
                       onChange={(e) => setRegNumber(e.target.value)}
+                      onBlur={() => {
+                        const clean = regNumber.replace(/[^A-Za-z0-9]/g, '');
+                        if (clean.length >= 5 && !inlineLookupLoading) {
+                          handleInlinePlateLookup(regNumber);
+                        }
+                      }}
                       placeholder={t('vehiclePlatePlaceholder')}
                       className="font-mono uppercase font-bold text-sm tracking-wide"
                       required
