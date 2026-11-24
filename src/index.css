@@ -2,9 +2,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
+  --background: #f8fafc;
   --foreground: #0f172a;
-  --surface: #f8fafc;
+  --surface: #ffffff;
   --card: #ffffff;
   --card-foreground: #0f172a;
   --border: #e2e8f0;
@@ -19,7 +19,7 @@
 .dark {
   --background: #0b0d12;
   --foreground: #f1f5f9;
-  --surface: #0f1219;
+  --surface: #11141c;
   --card: #11141c;
   --card-foreground: #f1f5f9;
   --border: #1f2430;
@@ -42,14 +42,26 @@
 
   html {
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: var(--background);
-    color: var(--foreground);
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+
+  html.dark {
+    background-color: #0b0d12;
+    color: #f1f5f9;
   }
 
   body {
-    background-color: var(--background);
-    color: var(--foreground);
+    background-color: #f8fafc;
+    color: #0f172a;
     margin: 0;
+  }
+
+  html.dark body,
+  body.dark {
+    background-color: #0b0d12;
+    color: #f1f5f9;
+    letter-spacing: 0.005em;
   }
 
   h1, h2, h3, h4, .font-display {

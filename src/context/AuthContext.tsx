@@ -74,6 +74,9 @@ function resolveAndApplyDomTheme(pref: ThemePreference) {
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   const shouldBeDark = pref === 'dark' || (pref === 'system' && prefersDark);
   root.classList.toggle('dark', shouldBeDark);
+  if (typeof document !== 'undefined' && document.body) {
+    document.body.classList.toggle('dark', shouldBeDark);
+  }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
