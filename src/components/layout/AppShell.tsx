@@ -6,15 +6,13 @@ import {
   X,
   Sun,
   Moon,
-  Radio,
-  Car,
   ChevronRight,
   ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n, type Language } from '../../context/I18nContext';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { ProfileModal } from './ProfilePopover';
 
@@ -27,12 +25,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
-  const { user, tenant, runtime, theme, applyTheme } = useAuth();
+  const { user, tenant, theme, applyTheme } = useAuth();
   const { lang, setLang, t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-
-  const isLive = runtime?.telephonyMode === 'live';
 
   const getInitials = (name?: string) => {
     if (!name) return 'PC';
@@ -63,50 +59,47 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row">
-      {/* Mobile Backdrop */}
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row antialiased">
+      {/* Mobile Drawer Backdrop */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs md:hidden"
         />
       )}
 
-      {/* Sidebar: Desktop fixed & Mobile overlay */}
+      {/* Sidebar */}
       <aside
         className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 flex flex-col justify-between border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-transform duration-200 ease-in-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
-        {/* Top: Brand Header */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <Car className="h-5 w-5" />
+        {/* Brand Header */}
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-black text-sm tracking-tight shrink-0 shadow-xs">
+              PF
             </div>
-            <div>
-              <div className="font-bold text-base text-slate-900 dark:text-white leading-tight flex items-center gap-1.5">
+            <div className="min-w-0">
+              <div className="font-bold text-sm text-slate-900 dark:text-white leading-none truncate">
                 {t('appTitle')}
-                <Badge variant="outline" className="text-[10px] py-0 px-1 font-semibold text-indigo-600 border-indigo-300 dark:text-indigo-400 dark:border-indigo-800">
-                  v2.0
-                </Badge>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[150px]">
-                {tenant?.businessName || 'PUC Center Automation'}
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-1">
+                {tenant?.businessName || 'PUC Center Platform'}
               </p>
             </div>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Middle: Navigation Links */}
+        {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Navigation
           </div>
           {navItems.map((item) => {
@@ -116,67 +109,52 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
               <button
                 key={item.id}
                 onClick={() => handleNav(item.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   active
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
-                <Icon className={`h-4 w-4 ${active ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
-                <span>{item.label}</span>
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{item.label}</span>
               </button>
             );
           })}
-
-          {/* Messaging Channel Status Card */}
-          <div className="pt-4 px-2">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                  <Radio className="w-3 h-3 text-emerald-500 animate-pulse" />
-                  Messaging Channel
-                </span>
-                <Badge
-                  variant="success"
-                  className="text-[10px] py-0 px-1.5 font-bold"
-                >
-                  WhatsApp Active
-                </Badge>
-              </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>Automated Expiry Alerts</span>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* BOTTOM-LEFT: User & PUC Center Profile Bar (Click opens Profile Modal) */}
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
+        {/* Status Indicator & Bottom-Left Profile Bar */}
+        <div className="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/40 dark:bg-slate-900/40 p-2 space-y-2">
+          {/* Subtle Clean WhatsApp Status Pill */}
+          <div className="px-2.5 py-1.5 flex items-center gap-2 rounded-lg bg-white dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="truncate">WhatsApp Engine Active</span>
+          </div>
+
+          {/* User Profile Card Button */}
           <button
             onClick={() => setProfileOpen(true)}
             title="Manage PUC Center Profile & Settings"
-            className="w-full flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all cursor-pointer group text-left"
+            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200/80 dark:hover:border-slate-700/80 transition-colors cursor-pointer group text-left"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative shrink-0">
-                <Avatar className="h-9 w-9 bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 ring-2 ring-indigo-500/30">
-                  <AvatarFallback className="text-xs font-bold">
-                    {getInitials(tenant?.ownerName || user?.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
-              </div>
+              <Avatar className="h-8 w-8 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs ring-1 ring-slate-200 dark:ring-slate-700 shrink-0">
+                <AvatarFallback>
+                  {getInitials(tenant?.ownerName || user?.fullName)}
+                </AvatarFallback>
+              </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                   {tenant?.businessName || 'PUC Center'}
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                  {tenant?.ownerName || user?.fullName || 'Center Owner'}
+                  {tenant?.ownerName || user?.fullName || 'Account Owner'}
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 shrink-0 ml-1 transition-transform group-hover:translate-x-0.5" />
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 shrink-0 ml-1 transition-transform group-hover:translate-x-0.5" />
           </button>
         </div>
       </aside>
@@ -184,29 +162,30 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="sticky top-0 z-30 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-4">
+        <header className="sticky top-0 z-30 h-14 border-b border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="md:hidden p-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="hidden sm:block">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">
                 {activeRoute === 'dashboard' ? t('navDashboard') : t('navSettings')}
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {tenant?.businessName ? `${tenant.businessName} • ` : ''}
+              </span>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 {t('liveStatus')}
-              </p>
+              </span>
             </div>
           </div>
 
-          {/* Right Header Controls: Language Switcher, Theme Toggle, Profile Trigger */}
+          {/* Right Header Controls */}
           <div className="flex items-center gap-2">
             {/* Language Switcher Buttons */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-md p-0.5 border border-slate-200/60 dark:border-slate-700/60">
               {(
                 [
                   { code: 'en', label: 'EN' },
@@ -218,10 +197,10 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
                   key={item.code}
                   onClick={() => setLang(item.code)}
                   title={`Switch language to ${item.code.toUpperCase()}`}
-                  className={`px-2 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                  className={`px-2 py-0.5 text-xs font-semibold rounded transition-colors cursor-pointer ${
                     lang === item.code
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                   }`}
                 >
                   {item.label}
@@ -235,37 +214,37 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
               size="icon-sm"
               onClick={() => applyTheme(theme === 'dark' ? 'light' : 'dark')}
               title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
-              className="rounded-lg border-slate-200 dark:border-slate-700"
+              className="rounded-md border-slate-200/80 dark:border-slate-800 h-8 w-8"
             >
               {theme === 'dark' ? (
-                <Sun className="h-4 w-4 text-amber-400" />
+                <Sun className="h-3.5 w-3.5 text-amber-400" />
               ) : (
-                <Moon className="h-4 w-4 text-slate-600" />
+                <Moon className="h-3.5 w-3.5 text-slate-600" />
               )}
             </Button>
 
             {/* Profile Avatar Pill in Top Bar */}
             <button
               onClick={() => setProfileOpen(true)}
-              className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              <Avatar className="h-7 w-7 text-xs font-bold bg-indigo-600 text-white">
+              <Avatar className="h-6 w-6 text-[10px] font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900">
                 <AvatarFallback>{getInitials(tenant?.ownerName || user?.fullName)}</AvatarFallback>
               </Avatar>
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 hidden md:inline truncate max-w-[120px]">
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 hidden md:inline truncate max-w-[120px]">
                 {tenant?.ownerName || user?.fullName || 'Account'}
               </span>
             </button>
           </div>
         </header>
 
-        {/* Page Body */}
+        {/* Page Content Body */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>
 
-      {/* Profile Modal triggered by Bottom-Left Profile Bar */}
+      {/* Profile Modal */}
       <ProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
     </div>
   );

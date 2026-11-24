@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Car,
-  PhoneCall,
   MessageSquare,
   Search,
   X,
@@ -9,23 +8,15 @@ import {
   RefreshCw,
   Clock,
   ShieldCheck,
-  AlertTriangle,
   AlertCircle,
   Users,
   Edit2,
   Trash2,
-  Phone,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
   Shield,
-  Sliders,
-  Radio,
-  Send,
-  Building2,
-  Calendar,
-  Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiRequest } from '../lib/api';
@@ -49,7 +40,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../components/ui/dialog';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -123,12 +114,12 @@ const COMMON_INSURERS = [
  */
 function IndianNumberPlate({ regNumber }: { regNumber: string }) {
   return (
-    <div className="inline-flex items-stretch rounded-md border-[1.5px] border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs overflow-hidden select-none">
+    <div className="inline-flex items-stretch rounded-md border border-slate-800 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xs overflow-hidden select-none">
       <div className="bg-[#003399] text-white px-1.5 py-0.5 flex flex-col items-center justify-center border-r border-white/20">
-        <span className="text-[9px] font-black tracking-wider leading-none">IND</span>
+        <span className="text-[8px] font-black tracking-wider leading-none">IND</span>
       </div>
-      <div className="px-2.5 py-1 flex items-center bg-white dark:bg-slate-900">
-        <span className="font-mono font-extrabold text-xs tracking-wider text-slate-900 dark:text-slate-100 uppercase leading-none">
+      <div className="px-2 py-0.5 flex items-center bg-white dark:bg-slate-900">
+        <span className="font-mono font-bold text-xs tracking-wider text-slate-900 dark:text-slate-100 uppercase leading-none">
           {regNumber || '—'}
         </span>
       </div>
@@ -346,17 +337,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         });
         toast.success(`Updated customer: ${fullName}`);
       } else {
-        const createRes = await apiRequest<{
-          id: string;
-          autoCallPlaced?: boolean;
-          autoCallStatus?: string;
-        }>('/api/customers', {
+        await apiRequest<{ id: string }>('/api/customers', {
           method: 'POST',
           body: payload,
         });
-
         toast.success(`Registered: ${fullName}`, {
-          description: `Vehicle registered. WhatsApp renewal reminder scheduled for +91 ${cleanPhone.slice(-10)}.`,
+          description: `Vehicle saved and scheduled for WhatsApp reminders.`,
         });
       }
 
@@ -463,148 +449,125 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   };
 
   return (
-    <div className="space-y-6 pb-16">
-      {/* 1. OPERATIONS HEADER & MASTER STATUS BANNER */}
-      <div className="rounded-2xl border border-indigo-100 dark:border-indigo-900/50 bg-gradient-to-r from-indigo-50/70 via-indigo-50/30 to-white dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+    <div className="space-y-6 pb-12">
+      {/* 1. CLEAN EXECUTIVE PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              PUC & Insurance Operations
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              Vehicles & Reminders
             </h1>
-            <Badge variant="success" className="gap-1 font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live Sync
-            </Badge>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+              {stats.total} total
+            </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Automated customer lifecycle management and personalized WhatsApp renewal notifications.
+            Track vehicle PUC certificates, manage expiry warnings, and dispatch WhatsApp renewal reminders.
           </p>
         </div>
 
-        {/* Master Channels State indicator pills */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-xs font-semibold">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                settings?.messagesEnabled !== false ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
-              }`}
-            />
-            <span className="text-slate-600 dark:text-slate-400">WhatsApp Reminders:</span>
-            <Badge
-              variant={settings?.messagesEnabled !== false ? 'success' : 'secondary'}
-              className="py-0 px-1.5 text-[10px]"
-            >
-              {settings?.messagesEnabled !== false ? 'ACTIVE' : 'OFF'}
-            </Badge>
-          </div>
-
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onNavigate('settings-general')}
-            className="gap-1.5 text-xs font-bold cursor-pointer"
+            onClick={loadData}
+            title={t('refresh')}
+            className="h-9 gap-1.5 text-xs font-medium"
           >
-            <Sliders className="w-3.5 h-3.5" />
-            Configure
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+
+          <Button
+            onClick={openCreateModal}
+            size="sm"
+            className="h-9 gap-1.5 font-semibold text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-xs cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            {t('registerCustomer')}
           </Button>
         </div>
       </div>
 
-      {/* 2. 4 EXECUTIVE KPI METRIC CARDS */}
+      {/* 2. REFINED MINIMALIST KPI CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Card 1: Total Customers */}
-        <Card className="border-l-4 border-l-indigo-600 hover:shadow-md transition-all">
-          <CardHeader className="p-4 sm:p-5 pb-2">
+        {/* Card 1: Total Registered */}
+        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t('totalCustomers')}
               </span>
-              <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                <Users className="w-4 h-4" />
-              </div>
+              <Users className="w-4 h-4 text-slate-400" />
             </div>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-5 pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-2">
               {stats.total}
             </div>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-              Active registered owners
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Active customer profiles
             </p>
           </CardContent>
         </Card>
 
-        {/* Card 2: Expiring Soon */}
-        <Card className="border-l-4 border-l-amber-500 hover:shadow-md transition-all">
-          <CardHeader className="p-4 sm:p-5 pb-2">
+        {/* Card 2: Due in 7 Days */}
+        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
                 {t('dueSoon')}
               </span>
-              <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                <Clock className="w-4 h-4" />
-              </div>
+              <Clock className="w-4 h-4 text-amber-500" />
             </div>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-5 pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400 mt-2">
               {stats.pucExpiring}
             </div>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Expiring in next 7 days
             </p>
           </CardContent>
         </Card>
 
-        {/* Card 3: Insured Vehicles */}
-        <Card className="border-l-4 border-l-sky-500 hover:shadow-md transition-all">
-          <CardHeader className="p-4 sm:p-5 pb-2">
+        {/* Card 3: Expired / Overdue */}
+        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-                With Insurance
+              <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                {t('filterExpired')}
               </span>
-              <div className="h-8 w-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
+              <AlertCircle className="w-4 h-4 text-red-500" />
             </div>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-5 pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400">
-              {stats.insuredTotal}
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-red-600 dark:text-red-400 mt-2">
+              {stats.expiredCount}
             </div>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-              {stats.insExpiring} due in 15 days
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              WhatsApp alert needed
             </p>
           </CardContent>
         </Card>
 
-        {/* Card 4: Expired / Overdue */}
-        <Card className="border-l-4 border-l-red-500 hover:shadow-md transition-all">
-          <CardHeader className="p-4 sm:p-5 pb-2">
+        {/* Card 4: Insured Coverage */}
+        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
-                {t('filterExpired')}
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Insured Vehicles
               </span>
-              <div className="h-8 w-8 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center">
-                <AlertCircle className="w-4 h-4" />
-              </div>
+              <ShieldCheck className="w-4 h-4 text-slate-400" />
             </div>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-5 pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
-              {stats.expiredCount}
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-2">
+              {stats.insuredTotal}
             </div>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-              WhatsApp reminder needed
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              {stats.insExpiring} policies due soon
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 3. SEARCH BAR, FILTER PILLS & REGISTER ACTION */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+      {/* 3. SEARCH & SEGMENTED FILTER TABS */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <Input
             value={searchQuery}
             onChange={(e) => {
@@ -612,29 +575,29 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               setPage(0);
             }}
             placeholder={t('searchPlaceholder')}
-            className="pl-9 pr-8"
+            className="pl-9 pr-8 h-9 text-xs"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+        {/* Segmented Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           <button
             onClick={() => {
               setActiveFilter('all');
               setPage(0);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'all'
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
+                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             {t('filterAll')} ({customers.length})
@@ -645,10 +608,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               setActiveFilter('expiring');
               setPage(0);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'expiring'
-                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-amber-500 text-white shadow-2xs'
+                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             {t('filterExpiringSoon')} ({stats.pucExpiring})
@@ -659,10 +622,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               setActiveFilter('expired');
               setPage(0);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'expired'
-                ? 'bg-red-600 text-white border-red-600 shadow-xs'
-                : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-red-500 text-white shadow-2xs'
+                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             {t('filterExpired')} ({stats.expiredCount})
@@ -673,37 +636,19 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               setActiveFilter('insured');
               setPage(0);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'insured'
-                ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
-                : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-sky-600 text-white shadow-2xs'
+                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             Insured ({stats.insuredTotal})
           </button>
-
-          <Button
-            onClick={openCreateModal}
-            className="font-bold gap-1.5 shrink-0 ml-auto cursor-pointer shadow-sm shadow-indigo-600/20"
-          >
-            <Plus className="w-4 h-4" />
-            {t('registerCustomer')}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={loadData}
-            title={t('refresh')}
-            className="shrink-0"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
         </div>
       </div>
 
       {/* 4A. DESKTOP DATA TABLE (Visible on >= md screens) */}
-      <div className="hidden md:block rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs">
+      <div className="hidden md:block rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
         <Table>
           <TableHeader>
             <TableRow>
@@ -720,24 +665,24 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 <TableRow key={idx}>
                   <TableCell>
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse" />
                       <div className="space-y-1.5">
-                        <div className="w-28 h-3.5 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                        <div className="w-20 h-3 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                        <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                        <div className="w-16 h-2.5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="w-24 h-6 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                    <div className="w-20 h-5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
                   </TableCell>
                   <TableCell>
-                    <div className="w-20 h-4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                    <div className="w-20 h-3.5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
                   </TableCell>
                   <TableCell>
-                    <div className="w-24 h-4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                    <div className="w-20 h-3.5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="w-24 h-8 bg-slate-200 dark:bg-slate-800 rounded animate-pulse ml-auto" />
+                    <div className="w-24 h-7 bg-slate-100 dark:bg-slate-800 rounded animate-pulse ml-auto" />
                   </TableCell>
                 </TableRow>
               ))
@@ -745,13 +690,15 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               <TableRow>
                 <TableCell colSpan={5} className="py-12 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <Car className="w-8 h-8 text-slate-400" />
-                    <p className="font-semibold text-sm">{t('noCustomersFound')}</p>
+                    <Car className="w-7 h-7 text-slate-300 dark:text-slate-600" />
+                    <p className="font-medium text-xs text-slate-600 dark:text-slate-400">
+                      {t('noCustomersFound')}
+                    </p>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={openCreateModal}
-                      className="mt-2 font-bold"
+                      className="mt-2 text-xs"
                     >
                       <Plus className="w-3.5 h-3.5 mr-1" />
                       {t('registerCustomer')}
@@ -772,22 +719,22 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     {/* Customer Info */}
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 ring-1 ring-indigo-500/20">
-                          <AvatarFallback className="text-xs font-bold">
+                        <Avatar className="h-8 w-8 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 text-xs font-bold ring-1 ring-slate-200 dark:ring-slate-700">
+                          <AvatarFallback>
                             {getInitials(c.fullName)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-bold text-slate-900 dark:text-white text-sm">
+                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-xs leading-none">
                             {c.fullName}
                           </p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="font-mono text-[11px] text-slate-500">
                               +91 {c.mobileNumber}
                             </span>
-                            <Badge variant="outline" className="text-[9px] py-0 px-1 font-semibold">
-                              {c.language ? c.language.toUpperCase() : 'GU'}
-                            </Badge>
+                            <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold">
+                              {c.language || 'GU'}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -799,7 +746,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                         <IndianNumberPlate
                           regNumber={c.vehicle?.registrationNumber || 'GJ01AB1234'}
                         />
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
                           {c.vehicle?.vehicleType || '2-Wheeler'} • {c.vehicle?.fuelType || 'Petrol'}
                         </p>
                       </div>
@@ -808,21 +755,21 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     {/* PUC Expiry */}
                     <TableCell>
                       <div className="space-y-1">
-                        <span className="font-medium text-xs text-slate-800 dark:text-slate-200 block">
+                        <span className="text-xs font-medium text-slate-800 dark:text-slate-200 block">
                           {formatDateShort(c.certificate?.expiryDate)}
                         </span>
                         {isPucExpired ? (
-                          <Badge variant="destructive" className="text-[10px] py-0 px-1.5 font-bold">
+                          <span className="inline-flex items-center text-[10px] font-semibold text-red-600 dark:text-red-400">
                             Expired ({Math.abs(c.certificate?.daysUntilExpiry || 0)}d ago)
-                          </Badge>
+                          </span>
                         ) : isPucExpSoon ? (
-                          <Badge variant="warning" className="text-[10px] py-0 px-1.5 font-bold">
+                          <span className="inline-flex items-center text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                             Due in {c.certificate?.daysUntilExpiry}d
-                          </Badge>
+                          </span>
                         ) : (
-                          <Badge variant="success" className="text-[10px] py-0 px-1.5 font-bold">
+                          <span className="inline-flex items-center text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                             Active
-                          </Badge>
+                          </span>
                         )}
                       </div>
                     </TableCell>
@@ -831,44 +778,40 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <TableCell>
                       {hasIns && c.insurance ? (
                         <div className="space-y-0.5">
-                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                          <span className="text-xs font-medium text-slate-800 dark:text-slate-200 block">
                             {c.insurance.insuranceCompany}
                           </span>
-                          <span className="text-[11px] font-mono text-slate-500 block truncate max-w-[140px]">
+                          <span className="text-[11px] font-mono text-slate-500 block truncate max-w-[130px]">
                             {c.insurance.policyNumber}
                           </span>
                           {isInsExpired ? (
-                            <Badge variant="destructive" className="text-[9px] py-0 px-1 font-bold">
-                              Expired
-                            </Badge>
+                            <span className="text-[10px] font-semibold text-red-600">Expired</span>
                           ) : isInsExpSoon ? (
-                            <Badge variant="warning" className="text-[9px] py-0 px-1 font-bold">
+                            <span className="text-[10px] font-semibold text-amber-600">
                               Due in {c.insurance.daysUntilExpiry}d
-                            </Badge>
+                            </span>
                           ) : (
-                            <Badge variant="info" className="text-[9px] py-0 px-1 font-bold">
-                              Covered
-                            </Badge>
+                            <span className="text-[10px] font-semibold text-emerald-600">Covered</span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-400 italic">No Policy Added</span>
+                        <span className="text-xs text-slate-400">—</span>
                       )}
                     </TableCell>
 
                     {/* Actions */}
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1">
                         {/* WhatsApp Button */}
                         <Button
-                          variant="default"
+                          variant="outline"
                           size="sm"
                           onClick={() => openWhatsAppDialog(c, hasIns && isInsExpSoon ? 'insurance' : 'puc')}
-                          className="h-8 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs"
-                          title="Generate and send WhatsApp reminder"
+                          className="h-8 gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-semibold cursor-pointer"
+                          title="Open WhatsApp reminder preview"
                         >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          Send WhatsApp
+                          <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>WhatsApp</span>
                         </Button>
 
                         {/* Edit Button */}
@@ -876,7 +819,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => openEditModal(c)}
-                          className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                          className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 h-8 w-8"
                           title="Edit Details"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -887,7 +830,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => setDeleteTarget(c)}
-                          className="text-slate-500 hover:text-red-600 dark:hover:text-red-400"
+                          className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 h-8 w-8"
                           title="Delete Customer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -913,10 +856,11 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               size="icon-sm"
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="h-7 w-7"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </Button>
-            <span className="font-bold">
+            <span className="font-medium text-xs">
               Page {page + 1} of {totalPages}
             </span>
             <Button
@@ -924,8 +868,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               size="icon-sm"
               disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              className="h-7 w-7"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
@@ -936,15 +881,15 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         {loading ? (
           Array.from({ length: 3 }).map((_, idx) => (
             <Card key={idx} className="p-4 space-y-3">
-              <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded animate-pulse w-1/3" />
-              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse w-1/2" />
-              <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+              <div className="h-5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-1/3" />
+              <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-1/2" />
+              <div className="h-9 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
             </Card>
           ))
         ) : paginatedCustomers.length === 0 ? (
           <Card className="p-8 text-center text-slate-500">
-            <Car className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-            <p className="font-semibold text-sm">{t('noCustomersFound')}</p>
+            <Car className="w-7 h-7 text-slate-300 mx-auto mb-2" />
+            <p className="font-medium text-xs">{t('noCustomersFound')}</p>
           </Card>
         ) : (
           paginatedCustomers.map((c) => {
@@ -954,19 +899,17 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             const isInsExpSoon = c.insurance?.status === 'expiring_soon';
 
             return (
-              <Card key={c.id} className="p-4 space-y-3.5">
+              <Card key={c.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    <Avatar className="h-9 w-9 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                      <AvatarFallback className="text-xs font-bold">
-                        {getInitials(c.fullName)}
-                      </AvatarFallback>
+                    <Avatar className="h-8 w-8 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold text-xs">
+                      <AvatarFallback>{getInitials(c.fullName)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                      <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                         {c.fullName}
                       </h4>
-                      <p className="text-xs font-mono text-slate-500 mt-0.5">
+                      <p className="text-[11px] font-mono text-slate-500">
                         +91 {c.mobileNumber}
                       </p>
                     </div>
@@ -977,7 +920,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => openEditModal(c)}
-                      className="text-slate-500"
+                      className="text-slate-400 h-7 w-7"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </Button>
@@ -985,7 +928,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => setDeleteTarget(c)}
-                      className="text-slate-500 hover:text-red-500"
+                      className="text-slate-400 hover:text-red-500 h-7 w-7"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -993,36 +936,36 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 </div>
 
                 {/* Plate and Expiry Status */}
-                <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
                   <IndianNumberPlate
                     regNumber={c.vehicle?.registrationNumber || 'GJ01AB1234'}
                   />
                   <div>
                     {isPucExpired ? (
-                      <Badge variant="destructive" className="text-[10px] font-bold">
+                      <span className="text-[10px] font-semibold text-red-600">
                         Expired ({Math.abs(c.certificate?.daysUntilExpiry || 0)}d ago)
-                      </Badge>
+                      </span>
                     ) : isPucExpSoon ? (
-                      <Badge variant="warning" className="text-[10px] font-bold">
+                      <span className="text-[10px] font-semibold text-amber-600">
                         Due in {c.certificate?.daysUntilExpiry}d
-                      </Badge>
+                      </span>
                     ) : (
-                      <Badge variant="success" className="text-[10px] font-bold">
-                        Active PUC
-                      </Badge>
+                      <span className="text-[10px] font-semibold text-emerald-600">
+                        Active
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* Mobile Action Button */}
-                <div className="pt-1">
+                {/* Mobile Full Action Button */}
+                <div className="pt-0.5">
                   <Button
-                    variant="default"
+                    variant="outline"
                     size="sm"
                     onClick={() => openWhatsAppDialog(c, hasIns && isInsExpSoon ? 'insurance' : 'puc')}
-                    className="w-full font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-xs"
+                    className="w-full font-semibold text-xs border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 gap-1.5"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
+                    <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
                     Send WhatsApp Reminder
                   </Button>
                 </div>
@@ -1036,7 +979,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-            <DialogTitle className="text-lg font-bold">
+            <DialogTitle className="text-base font-bold">
               {editingCustomer ? `Edit Customer: ${editingCustomer.fullName}` : t('addCustomerTitle')}
             </DialogTitle>
             <DialogDescription className="text-xs">
@@ -1051,10 +994,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               </Alert>
             )}
 
-            {/* SECTION 1: Customer Info */}
+            {/* SECTION 1: Customer Profile */}
             <div className="space-y-3">
-              <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
-                1. Customer Profile
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                1. Customer Details
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -1097,8 +1040,8 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
             {/* SECTION 2: Vehicle & PUC Certificate */}
             <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
-                2. Vehicle & PUC Details
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                2. Vehicle & PUC Certificate
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1184,7 +1127,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
                     3. Insurance Policy (Optional)
                   </span>
                   <span className="text-[11px] text-slate-500">
@@ -1268,15 +1211,6 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               )}
             </div>
 
-            {/* Auto-WhatsApp Notice */}
-            {!editingCustomer && (
-              <Alert variant="info" className="py-2.5">
-                <AlertDescription className="text-[11px] leading-relaxed">
-                  Automated WhatsApp renewal reminders will be scheduled for this customer according to your settings.
-                </AlertDescription>
-              </Alert>
-            )}
-
             <DialogFooter className="pt-3 border-t border-slate-100 dark:border-slate-800">
               <Button
                 type="button"
@@ -1291,7 +1225,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 type="submit"
                 size="sm"
                 disabled={submitting}
-                className="font-bold shadow-xs cursor-pointer"
+                className="font-semibold cursor-pointer"
               >
                 {submitting ? t('savingCustomer') : editingCustomer ? 'Save Changes' : t('saveCustomer')}
               </Button>
@@ -1300,7 +1234,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         </DialogContent>
       </Dialog>
 
-      {/* 6. REALISTIC WHATSAPP SIMULATOR DIALOG */}
+      {/* 6. WHATSAPP PREVIEW DIALOG */}
       <Dialog
         open={Boolean(whatsappCustomer)}
         onOpenChange={(open) => !open && setWhatsappCustomer(null)}
@@ -1308,29 +1242,29 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl">
           <div className="bg-[#075E54] text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <Avatar className="h-9 w-9 bg-white/20 text-white font-bold ring-1 ring-white/30">
+              <Avatar className="h-8 w-8 bg-white/20 text-white font-bold ring-1 ring-white/30 text-xs">
                 <AvatarFallback>{getInitials(whatsappCustomer?.fullName)}</AvatarFallback>
               </Avatar>
               <div>
-                <h4 className="font-bold text-sm leading-tight flex items-center gap-1.5">
+                <h4 className="font-bold text-xs leading-tight flex items-center gap-1.5">
                   {whatsappCustomer?.fullName}
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
                 </h4>
-                <p className="text-[11px] text-white/80 font-mono">
+                <p className="text-[10px] text-white/80 font-mono">
                   +91 {whatsappCustomer?.mobileNumber}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="p-4 bg-[#e5ddd5]/40 dark:bg-slate-950 min-h-[220px] flex flex-col justify-end">
+          <div className="p-4 bg-[#e5ddd5]/30 dark:bg-slate-950 min-h-[200px] flex flex-col justify-end">
             {loadingWhatsapp ? (
               <div className="flex items-center justify-center p-8 text-slate-500">
-                <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+                <RefreshCw className="w-4 h-4 animate-spin mr-2" />
                 <span className="text-xs">Generating reminder message...</span>
               </div>
             ) : (
-              <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 p-3 shadow-xs ml-auto">
+              <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 p-3 shadow-2xs ml-auto">
                 <p className="text-xs text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed">
                   {whatsappPreview}
                 </p>
@@ -1347,6 +1281,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               variant="outline"
               size="sm"
               onClick={() => setWhatsappCustomer(null)}
+              className="text-xs"
             >
               Close
             </Button>
@@ -1356,10 +1291,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#1EBE5D] text-white font-semibold text-xs shadow-2xs"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                Open WhatsApp
+                Open in WhatsApp
               </a>
             )}
           </div>
@@ -1374,7 +1309,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         <DialogContent className="max-w-sm p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
+              <AlertCircle className="w-4 h-4" />
               Delete Vehicle Record
             </DialogTitle>
             <DialogDescription className="text-xs mt-2">
@@ -1389,6 +1324,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               size="sm"
               onClick={() => setDeleteTarget(null)}
               disabled={deleting}
+              className="text-xs"
             >
               Cancel
             </Button>
@@ -1397,7 +1333,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               size="sm"
               onClick={handleDelete}
               disabled={deleting}
-              className="font-bold cursor-pointer"
+              className="font-semibold text-xs cursor-pointer"
             >
               {deleting ? 'Deleting...' : 'Delete'}
             </Button>

@@ -3,9 +3,6 @@ import {
   MessageSquare,
   Clock,
   Save,
-  CheckCircle2,
-  Sparkles,
-  Zap,
   Shield,
   Info,
 } from 'lucide-react';
@@ -135,7 +132,6 @@ export function SettingsView() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Calls are explicitly disabled per user request
       const payload: Record<string, unknown> = {
         callsEnabled: false,
         autoCallOnRegistration: false,
@@ -159,7 +155,7 @@ export function SettingsView() {
         body: payload,
       });
 
-      toast.success('WhatsApp reminder settings saved successfully!');
+      toast.success('WhatsApp reminder settings saved successfully');
       await loadSettings();
     } catch (err) {
       toast.error(t('saveFailed'), {
@@ -173,97 +169,102 @@ export function SettingsView() {
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/3" />
-        <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-        <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-8 bg-slate-100 dark:bg-slate-800 rounded w-1/4" />
+        <div className="h-28 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+        <div className="h-64 bg-slate-100 dark:bg-slate-800 rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-16">
-      {/* Page Header with Save Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+    <div className="space-y-6 pb-12">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Sparkles className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
             WhatsApp Automation Settings
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Configure automated WhatsApp reminder templates, delivery limits, and renewal notification timelines.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Configure automated WhatsApp reminder templates, delivery limits, and notification schedules.
           </p>
         </div>
         <Button
           onClick={handleSave}
           disabled={saving}
-          size="lg"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shrink-0 gap-2 cursor-pointer shadow-md shadow-emerald-600/20"
+          size="sm"
+          className="h-9 gap-1.5 font-semibold text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-xs cursor-pointer"
         >
-          <Save className="w-4 h-4" />
-          {saving ? t('saving') : 'Save WhatsApp Settings'}
+          <Save className="w-3.5 h-3.5" />
+          {saving ? t('saving') : 'Save Settings'}
         </Button>
       </div>
 
       {/* SECTION 1: MASTER WHATSAPP SWITCH */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            Primary Communication Channel
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Primary Messaging Channel
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Control automated WhatsApp messaging for PUC and Insurance renewals.
+            Control automated WhatsApp notifications sent to vehicle owners.
           </p>
         </div>
 
-        <Card
-          className={`border transition-all ${
-            messagesEnabled
-              ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/20'
-              : 'opacity-70'
-          }`}
-        >
-          <CardHeader className="p-5 pb-3">
+        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <CardHeader className="p-4 sm:p-5 pb-3">
             <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5" />
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-semibold">
+                    Automated WhatsApp Reminders
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-0.5">
+                    Dispatches formatted WhatsApp renewal messages directly to vehicle owners before and after expiry.
+                  </CardDescription>
+                </div>
               </div>
               <Switch
                 checked={messagesEnabled}
                 onCheckedChange={setMessagesEnabled}
               />
             </div>
-            <CardTitle className="text-base font-bold mt-3">
-              Automated WhatsApp Reminders
-            </CardTitle>
-            <CardDescription className="text-xs leading-relaxed">
-              Sends formatted WhatsApp renewal messages directly to vehicle owners before and after expiry.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="p-5 pt-0">
-            <Badge variant={messagesEnabled ? 'success' : 'secondary'} className="text-[11px] font-bold">
-              {messagesEnabled ? 'Active (WhatsApp Reminders ON)' : 'Disabled'}
-            </Badge>
+          <CardContent className="p-4 sm:p-5 pt-0">
+            <span
+              className={`inline-flex items-center text-xs font-medium ${
+                messagesEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                  messagesEnabled ? 'bg-emerald-500' : 'bg-slate-400'
+                }`}
+              />
+              {messagesEnabled ? 'Automated messaging is enabled' : 'Automated messaging is paused'}
+            </span>
           </CardContent>
         </Card>
       </div>
 
       {/* SECTION 2: LIMITS & TIMELINE CADENCE */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Limits Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              Messaging Limits & Frequency
+        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <CardHeader className="p-4 sm:p-5 pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-slate-400" />
+              Delivery Limits
             </CardTitle>
             <CardDescription className="text-xs">
               Prevent spamming customers by capping reminder messages.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-4 sm:p-5 pt-0 space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
                 {t('maxMessagesPerCustomer')}
               </label>
               <Input
@@ -272,32 +273,32 @@ export function SettingsView() {
                 max={10}
                 value={maxMessages}
                 onChange={(e) => setMaxMessages(Number(e.target.value))}
-                className="font-mono"
+                className="font-mono text-xs h-9"
               />
-              <span className="text-[11px] text-slate-400">
-                Recommended: 3 messages per certificate (Pre-expiry, On Expiry, Overdue)
+              <span className="text-[11px] text-slate-400 block">
+                Standard: 3 messages per certificate (Pre-expiry, Expiry day, and Overdue)
               </span>
             </div>
           </CardContent>
         </Card>
 
         {/* Cadence Timeline Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <CardHeader className="p-4 sm:p-5 pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Clock className="w-4 h-4 text-slate-400" />
               {t('cadenceTitle')}
             </CardTitle>
             <CardDescription className="text-xs">
               {t('cadenceDesc')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+          <CardContent className="p-4 sm:p-5 pt-0 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
                 {t('daysBeforeExpiry')}
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {AVAILABLE_DAYS_BEFORE.map((item) => {
                   const selected = remindDaysBefore.includes(item.value);
                   return (
@@ -305,10 +306,10 @@ export function SettingsView() {
                       key={item.value}
                       type="button"
                       onClick={() => toggleDayBefore(item.value)}
-                      className={`text-xs px-3 py-1.5 rounded-full font-medium border transition-all cursor-pointer ${
+                      className={`text-xs px-2.5 py-1 rounded-md font-medium border transition-colors cursor-pointer ${
                         selected
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                          : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-2xs'
+                          : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
                       {item.label}
@@ -318,11 +319,11 @@ export function SettingsView() {
               </div>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
                 {t('daysAfterExpiry')}
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {AVAILABLE_DAYS_AFTER.map((item) => {
                   const selected = remindDaysAfter.includes(item.value);
                   return (
@@ -330,10 +331,10 @@ export function SettingsView() {
                       key={item.value}
                       type="button"
                       onClick={() => toggleDayAfter(item.value)}
-                      className={`text-xs px-3 py-1.5 rounded-full font-medium border transition-all cursor-pointer ${
+                      className={`text-xs px-2.5 py-1 rounded-md font-medium border transition-colors cursor-pointer ${
                         selected
-                          ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                          : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-amber-500 text-white border-transparent shadow-2xs'
+                          : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
                       {item.label}
@@ -347,35 +348,35 @@ export function SettingsView() {
       </div>
 
       {/* SECTION 3: TEMPLATES & LIVE PREVIEW */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-bold flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <CardHeader className="p-4 sm:p-5 pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-slate-400" />
             WhatsApp Message Templates
           </CardTitle>
           <CardDescription className="text-xs">
             {t('templatesDesc')}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-5 pt-0">
           <Tabs defaultValue="puc">
-            <TabsList className="grid w-full grid-cols-2 max-w-sm">
-              <TabsTrigger value="puc">PUC WhatsApp</TabsTrigger>
-              <TabsTrigger value="insurance">Insurance WhatsApp</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 max-w-xs h-8">
+              <TabsTrigger value="puc" className="text-xs py-1">PUC Certificate</TabsTrigger>
+              <TabsTrigger value="insurance" className="text-xs py-1">Insurance Policy</TabsTrigger>
             </TabsList>
 
             {/* PUC Template Tab */}
-            <TabsContent value="puc" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-                <div className="space-y-3">
+            <TabsContent value="puc" className="space-y-4 pt-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      {t('pucWhatsappTemplate')}
+                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                      Template Message
                     </label>
-                    <span className="text-[11px] text-slate-400">Supports Markdown & Placeholders</span>
+                    <span className="text-[11px] text-slate-400">Supports Markdown</span>
                   </div>
                   <Textarea
-                    rows={8}
+                    rows={7}
                     value={pucTemplate}
                     onChange={(e) => setPucTemplate(e.target.value)}
                     className="font-mono text-xs leading-relaxed"
@@ -384,16 +385,16 @@ export function SettingsView() {
 
                   {/* Insert Placeholder Pills */}
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 block mb-1.5">
-                      {t('availablePlaceholders')}
+                    <span className="text-[11px] font-medium text-slate-500 block mb-1">
+                      Available dynamic tags (click to insert):
                     </span>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {PLACEHOLDERS.map((token) => (
                         <button
                           key={token}
                           type="button"
                           onClick={() => insertPlaceholder(setPucTemplate, token)}
-                          className="text-[11px] bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-emerald-400 cursor-pointer"
+                          className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-slate-400 cursor-pointer font-mono"
                         >
                           {token}
                         </button>
@@ -403,13 +404,13 @@ export function SettingsView() {
                 </div>
 
                 {/* Live Preview */}
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 text-emerald-500" />
-                    {t('livePreview')}
+                <div className="space-y-1.5">
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5 text-slate-400" />
+                    Customer Message Preview
                   </span>
-                  <div className="rounded-xl border border-emerald-200 dark:border-emerald-950 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 min-h-[200px] flex flex-col justify-end">
-                    <div className="max-w-[85%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3 shadow-xs">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 min-h-[180px] flex flex-col justify-end">
+                    <div className="max-w-[85%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3 shadow-2xs">
                       <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
                         {pucTemplate
                           ? pucTemplate
@@ -430,31 +431,31 @@ export function SettingsView() {
             </TabsContent>
 
             {/* Insurance Template Tab */}
-            <TabsContent value="insurance" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-                <div className="space-y-3">
+            <TabsContent value="insurance" className="space-y-4 pt-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      {t('insuranceWhatsappTemplate')}
+                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                      Template Message
                     </label>
                   </div>
                   <Textarea
-                    rows={8}
+                    rows={7}
                     value={insTemplate}
                     onChange={(e) => setInsTemplate(e.target.value)}
                     className="font-mono text-xs leading-relaxed"
                   />
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 block mb-1.5">
-                      {t('availablePlaceholders')}
+                    <span className="text-[11px] font-medium text-slate-500 block mb-1">
+                      Available dynamic tags (click to insert):
                     </span>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {PLACEHOLDERS.map((token) => (
                         <button
                           key={token}
                           type="button"
                           onClick={() => insertPlaceholder(setInsTemplate, token)}
-                          className="text-[11px] bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-emerald-400 cursor-pointer"
+                          className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-slate-400 cursor-pointer font-mono"
                         >
                           {token}
                         </button>
@@ -463,12 +464,12 @@ export function SettingsView() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    {t('livePreview')}
+                <div className="space-y-1.5">
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Customer Message Preview
                   </span>
-                  <div className="rounded-xl border border-emerald-200 dark:border-emerald-950 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 min-h-[200px] flex flex-col justify-end">
-                    <div className="max-w-[85%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3 shadow-xs">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 min-h-[180px] flex flex-col justify-end">
+                    <div className="max-w-[85%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3 shadow-2xs">
                       <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
                         {insTemplate
                           ? insTemplate
@@ -489,22 +490,6 @@ export function SettingsView() {
           </Tabs>
         </CardContent>
       </Card>
-
-      {/* Sticky Bottom Save Bar */}
-      <div className="sticky bottom-4 z-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 shadow-xl flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-          <Shield className="w-4 h-4 text-emerald-500" />
-          <span>All WhatsApp reminders are queued and dispatched safely to customers.</span>
-        </div>
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20 gap-2 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {saving ? t('saving') : 'Save Settings'}
-        </Button>
-      </div>
     </div>
   );
 }
