@@ -17,12 +17,15 @@ import {
   ExternalLink,
   Shield,
   CheckCircle2,
+  QrCode,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiRequest } from '../lib/api';
 import { formatDateShort, todayIsoDate, addDaysIsoDate } from '../lib/utils';
 import { useI18n } from '../context/I18nContext';
 import type { NavRoute } from '../components/layout/AppShell';
+import { PucScannerPanel, type ExtractedPucData } from '../components/scanner/PucScannerPanel';
 
 import {
   Table,
@@ -267,6 +270,18 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
     setModalOpen(true);
   };
 
+  const handleScanAutoFill = (extracted: ExtractedPucData) => {
+    if (extracted.regNumber) setRegNumber(extracted.regNumber);
+    if (extracted.fullName) setFullName(extracted.fullName);
+    if (extracted.mobileNumber) setMobileNumber(extracted.mobileNumber);
+    if (extracted.fuelType) setFuelType(extracted.fuelType);
+    if (extracted.vehicleType) setVehicleType(extracted.vehicleType);
+    if (extracted.makeModel) setMakeModel(extracted.makeModel);
+    if (extracted.issueDate) setIssueDate(extracted.issueDate);
+    if (extracted.expiryDate) setExpiryDate(extracted.expiryDate);
+    if (extracted.certificateNumber) setCertNumber(extracted.certificateNumber);
+  };
+
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -472,10 +487,21 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             size="sm"
             onClick={loadData}
             title={t('refresh')}
-            className="h-9 gap-1.5 text-xs font-medium"
+            className="h-9 gap-1.5 text-xs font-medium cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openCreateModal}
+            className="h-9 gap-1.5 font-semibold text-xs border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 cursor-pointer"
+          >
+            <QrCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Scan / Auto-Fill</span>
           </Button>
 
           <Button
@@ -977,7 +1003,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
       {/* 5. CREATE / EDIT CUSTOMER DIALOG */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-6">
+        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-5 sm:p-6">
           <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
             <DialogTitle className="text-base font-bold">
               {editingCustomer ? `Edit Customer: ${editingCustomer.fullName}` : t('addCustomerTitle')}
@@ -992,6 +1018,11 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               <Alert variant="destructive" className="py-2.5">
                 <AlertDescription>{formError}</AlertDescription>
               </Alert>
+            )}
+
+            {/* 1-Click Fast Auto-Fill (Scan QR, Upload Parivahan PDF, Photo & WhatsApp) */}
+            {!editingCustomer && (
+              <PucScannerPanel onExtracted={handleScanAutoFill} />
             )}
 
             {/* SECTION 1: Customer Profile */}
