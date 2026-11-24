@@ -149,9 +149,6 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(15);
 
-  // Direct Exotel Call states
-  const [callingId, setCallingId] = useState<string | null>(null);
-
   // Delete states
   const [deleteTarget, setDeleteTarget] = useState<CustomerItem | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -358,13 +355,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
           body: payload,
         });
 
-        if (createRes.autoCallPlaced) {
-          toast.success(`Registered: ${fullName}`, {
-            description: `Automated welcome call dialed to +91 ${cleanPhone.slice(-10)} (${createRes.autoCallStatus || 'initiated'})`,
-          });
-        } else {
-          toast.success(`Registered: ${fullName}`);
-        }
+        toast.success(`Registered: ${fullName}`, {
+          description: `Vehicle registered. WhatsApp renewal reminder scheduled for +91 ${cleanPhone.slice(-10)}.`,
+        });
       }
 
       setModalOpen(false);
@@ -373,25 +366,6 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       setFormError(err instanceof Error ? err.message : 'Failed to save customer');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleDirectCall = async (c: CustomerItem) => {
-    setCallingId(c.id);
-    try {
-      const res = await apiRequest<{ ok: boolean; status?: string }>('/api/calls/manual', {
-        method: 'POST',
-        body: { customerId: c.id, certificateId: c.certificate?.id },
-      });
-      toast.success(`Outbound call placed to ${c.fullName} (${c.mobileNumber})`, {
-        description: res.status ? `Exotel status: ${res.status}` : 'IVR dialing initiated via Exotel.',
-      });
-    } catch (err) {
-      toast.error('Failed to dial customer', {
-        description: err instanceof Error ? err.message : 'Please check Exotel configuration',
-      });
-    } finally {
-      setCallingId(null);
     }
   };
 
@@ -503,7 +477,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Automated customer lifecycle management, Exotel voice dialer, and personalized WhatsApp notifications.
+            Automated customer lifecycle management and personalized WhatsApp renewal notifications.
           </p>
         </div>
 
@@ -512,25 +486,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-xs font-semibold">
             <span
               className={`w-2 h-2 rounded-full ${
-                settings?.callsEnabled !== false ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
-              }`}
-            />
-            <span className="text-slate-600 dark:text-slate-400">Calls:</span>
-            <Badge
-              variant={settings?.callsEnabled !== false ? 'success' : 'secondary'}
-              className="py-0 px-1.5 text-[10px]"
-            >
-              {settings?.callsEnabled !== false ? 'ACTIVE' : 'OFF'}
-            </Badge>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-xs font-semibold">
-            <span
-              className={`w-2 h-2 rounded-full ${
                 settings?.messagesEnabled !== false ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
               }`}
             />
-            <span className="text-slate-600 dark:text-slate-400">WhatsApp:</span>
+            <span className="text-slate-600 dark:text-slate-400">WhatsApp Reminders:</span>
             <Badge
               variant={settings?.messagesEnabled !== false ? 'success' : 'secondary'}
               className="py-0 px-1.5 text-[10px]"
@@ -636,7 +595,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               {stats.expiredCount}
             </div>
             <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-              Immediate voice call required
+              WhatsApp reminder needed
             </p>
           </CardContent>
         </Card>
@@ -900,29 +859,16 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     {/* Actions */}
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Direct Outbound Voice Call Button */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDirectCall(c)}
-                          disabled={callingId === c.id}
-                          className="h-8 gap-1.5 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-bold text-xs"
-                          title="Trigger automated IVR call now"
-                        >
-                          <PhoneCall className={`w-3.5 h-3.5 ${callingId === c.id ? 'animate-spin' : ''}`} />
-                          {callingId === c.id ? 'Calling...' : t('callNow')}
-                        </Button>
-
                         {/* WhatsApp Button */}
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
                           onClick={() => openWhatsAppDialog(c, hasIns && isInsExpSoon ? 'insurance' : 'puc')}
-                          className="h-8 gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-500 hover:text-white font-bold text-xs"
+                          className="h-8 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs"
                           title="Generate and send WhatsApp reminder"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
-                          WhatsApp
+                          Send WhatsApp
                         </Button>
 
                         {/* Edit Button */}
@@ -1068,27 +1014,16 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                   </div>
                 </div>
 
-                {/* Mobile Full Action Buttons */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDirectCall(c)}
-                    disabled={callingId === c.id}
-                    className="w-full font-bold text-xs border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 gap-1.5"
-                  >
-                    <PhoneCall className={`w-3.5 h-3.5 ${callingId === c.id ? 'animate-spin' : ''}`} />
-                    {callingId === c.id ? 'Calling...' : t('callNow')}
-                  </Button>
-
+                {/* Mobile Action Button */}
+                <div className="pt-1">
                   <Button
                     variant="default"
                     size="sm"
                     onClick={() => openWhatsAppDialog(c, hasIns && isInsExpSoon ? 'insurance' : 'puc')}
-                    className="w-full font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                    className="w-full font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-xs"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
-                    WhatsApp
+                    Send WhatsApp Reminder
                   </Button>
                 </div>
               </Card>
@@ -1333,11 +1268,11 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               )}
             </div>
 
-            {/* Auto-Call Notice */}
+            {/* Auto-WhatsApp Notice */}
             {!editingCustomer && (
               <Alert variant="info" className="py-2.5">
                 <AlertDescription className="text-[11px] leading-relaxed">
-                  {t('autoCallNotice')}
+                  Automated WhatsApp renewal reminders will be scheduled for this customer according to your settings.
                 </AlertDescription>
               </Alert>
             )}

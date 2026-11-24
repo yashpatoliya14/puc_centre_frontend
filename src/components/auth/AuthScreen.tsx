@@ -189,14 +189,14 @@ export function AuthScreen() {
           <div className="space-y-3 pt-2">
             <div className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xs">
               <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                <PhoneCall className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4" />
               </div>
               <div>
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  Automated Exotel Calling
+                  Automated WhatsApp Alerts
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Instant outbound reminder calls in Gujarati & Hindi upon registration and expiry.
+                  Instant formatted renewal reminders in Gujarati & Hindi on registration and expiry.
                 </p>
               </div>
             </div>

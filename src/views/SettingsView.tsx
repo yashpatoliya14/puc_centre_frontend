@@ -1,19 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  PhoneCall,
   MessageSquare,
   Clock,
-  Calendar,
-  KeyRound,
   Save,
   CheckCircle2,
-  AlertTriangle,
-  RotateCcw,
   Sparkles,
   Zap,
   Shield,
-  HelpCircle,
-  Copy,
   Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -44,18 +37,6 @@ interface SimplifiedSettings {
   businessName: string;
   ownerName: string;
   mobileNumber: string;
-  telephony: {
-    provider: string;
-    mode: string;
-    accountSid: string;
-    subdomain: string;
-    callerId: string;
-    appUrl: string;
-    hasApiKey: boolean;
-    hasApiToken: boolean;
-    lastTestedAt: string | null;
-    lastTestStatus: string | null;
-  };
 }
 
 const AVAILABLE_DAYS_BEFORE = [
@@ -85,44 +66,23 @@ export function SettingsView() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [testingConnection, setTestingConnection] = useState(false);
 
-  // Master Toggles
-  const [callsEnabled, setCallsEnabled] = useState(true);
-  const [autoCallOnRegistration, setAutoCallOnRegistration] = useState(true);
+  // WhatsApp Messaging Master Switch
   const [messagesEnabled, setMessagesEnabled] = useState(true);
-
-  // Limits & Frequency
-  const [maxCalls, setMaxCalls] = useState(3);
   const [maxMessages, setMaxMessages] = useState(3);
-  const [retryInterval, setRetryInterval] = useState(60);
 
-  // Timing
-  const [windowStart, setWindowStart] = useState('09:30');
-  const [windowEnd, setWindowEnd] = useState('19:30');
+  // Reminder Timeline
   const [remindDaysBefore, setRemindDaysBefore] = useState<number[]>([7, 3, 0]);
   const [remindDaysAfter, setRemindDaysAfter] = useState<number[]>([1, 3]);
 
   // Templates
   const [pucTemplate, setPucTemplate] = useState('');
   const [insTemplate, setInsTemplate] = useState('');
-  const [voiceTemplate, setVoiceTemplate] = useState('');
 
   // Business Profile
   const [businessName, setBusinessName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
-
-  // Telephony credentials
-  const [accountSid, setAccountSid] = useState('');
-  const [callerId, setCallerId] = useState('');
-  const [subdomain, setSubdomain] = useState('api.exotel.com');
-  const [apiKey, setApiKey] = useState('');
-  const [apiToken, setApiToken] = useState('');
-  const [hasApiKey, setHasApiKey] = useState(false);
-  const [hasApiToken, setHasApiToken] = useState(false);
-  const [lastTestedAt, setLastTestedAt] = useState<string | null>(null);
-  const [lastTestStatus, setLastTestStatus] = useState<string | null>(null);
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
@@ -130,32 +90,15 @@ export function SettingsView() {
       const res = await apiRequest<{ simplified: SimplifiedSettings }>('/api/settings');
       const s = res.simplified;
       if (s) {
-        setCallsEnabled(s.callsEnabled ?? true);
-        setAutoCallOnRegistration(s.autoCallOnRegistration ?? true);
         setMessagesEnabled(s.messagesEnabled ?? true);
-        setMaxCalls(s.maxCallsPerCustomer ?? 3);
         setMaxMessages(s.maxMessagesPerCustomer ?? 3);
-        setRetryInterval(s.retryIntervalMinutes ?? 60);
-        setWindowStart(s.callingWindowStart || '09:30');
-        setWindowEnd(s.callingWindowEnd || '19:30');
         setRemindDaysBefore(s.remindDaysBefore || [7, 3, 0]);
         setRemindDaysAfter(s.remindDaysAfter || [1, 3]);
         setPucTemplate(s.pucMessageTemplate || '');
         setInsTemplate(s.insuranceMessageTemplate || '');
-        setVoiceTemplate(s.voiceScriptTemplate || '');
         setBusinessName(s.businessName || '');
         setOwnerName(s.ownerName || '');
         setMobileNumber(s.mobileNumber || '');
-
-        if (s.telephony) {
-          setAccountSid(s.telephony.accountSid || '');
-          setCallerId(s.telephony.callerId || '');
-          setSubdomain(s.telephony.subdomain || 'api.exotel.com');
-          setHasApiKey(s.telephony.hasApiKey);
-          setHasApiToken(s.telephony.hasApiToken);
-          setLastTestedAt(s.telephony.lastTestedAt);
-          setLastTestStatus(s.telephony.lastTestStatus);
-        }
       }
     } catch (err) {
       toast.error('Failed to load settings', {
@@ -192,39 +135,31 @@ export function SettingsView() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Calls are explicitly disabled per user request
       const payload: Record<string, unknown> = {
-        callsEnabled,
-        autoCallOnRegistration,
+        callsEnabled: false,
+        autoCallOnRegistration: false,
         messagesEnabled,
-        maxCallsPerCustomer: Number(maxCalls),
-        retryIntervalMinutes: Number(retryInterval),
+        maxCallsPerCustomer: 1,
+        retryIntervalMinutes: 60,
         maxMessagesPerCustomer: Number(maxMessages),
-        callingWindowStart: windowStart,
-        callingWindowEnd: windowEnd,
+        callingWindowStart: '09:30',
+        callingWindowEnd: '19:30',
         remindDaysBefore,
         remindDaysAfter,
         pucMessageTemplate: pucTemplate,
         insuranceMessageTemplate: insTemplate,
-        voiceScriptTemplate: voiceTemplate,
         businessName: businessName.trim() || undefined,
         ownerName: ownerName.trim() || undefined,
         mobileNumber: mobileNumber.trim() || undefined,
-        accountSid: accountSid.trim() || undefined,
-        callerId: callerId.trim() || undefined,
-        subdomain: subdomain.trim() || undefined,
       };
-
-      if (apiKey.trim()) payload.apiKey = apiKey.trim();
-      if (apiToken.trim()) payload.apiToken = apiToken.trim();
 
       await apiRequest('/api/settings', {
         method: 'PUT',
         body: payload,
       });
 
-      toast.success(t('savedSuccess'));
-      setApiKey('');
-      setApiToken('');
+      toast.success('WhatsApp reminder settings saved successfully!');
       await loadSettings();
     } catch (err) {
       toast.error(t('saveFailed'), {
@@ -235,36 +170,11 @@ export function SettingsView() {
     }
   };
 
-  const handleTestTelephony = async () => {
-    setTestingConnection(true);
-    try {
-      const res = await apiRequest<{ ok: boolean; message: string }>('/api/settings/calling/test', {
-        method: 'POST',
-      });
-      if (res.ok) {
-        toast.success(t('connectionSuccess'), { description: res.message });
-      } else {
-        toast.error(t('connectionFailed'), { description: res.message });
-      }
-      await loadSettings();
-    } catch (err) {
-      toast.error(t('connectionFailed'), {
-        description: err instanceof Error ? err.message : 'Connection test request failed',
-      });
-    } finally {
-      setTestingConnection(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/3" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-        </div>
+        <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
         <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-xl" />
       </div>
     );
@@ -276,239 +186,114 @@ export function SettingsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Sparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-            {t('settingsTitle')}
+            <Sparkles className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            WhatsApp Automation Settings
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {t('settingsDesc')}
+            Configure automated WhatsApp reminder templates, delivery limits, and renewal notification timelines.
           </p>
         </div>
         <Button
           onClick={handleSave}
           disabled={saving}
           size="lg"
-          className="shadow-md shadow-indigo-600/20 font-bold shrink-0 gap-2 cursor-pointer"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shrink-0 gap-2 cursor-pointer shadow-md shadow-emerald-600/20"
         >
           <Save className="w-4 h-4" />
-          {saving ? t('saving') : t('saveAllSettings')}
+          {saving ? t('saving') : 'Save WhatsApp Settings'}
         </Button>
       </div>
 
-      {/* SECTION 1: MASTER COMMUNICATION SWITCHES */}
+      {/* SECTION 1: MASTER WHATSAPP SWITCH */}
       <div className="space-y-4">
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            {t('masterTogglesTitle')}
+            <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            Primary Communication Channel
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {t('masterTogglesDesc')}
+            Control automated WhatsApp messaging for PUC and Insurance renewals.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Voice Calling Master Switch */}
-          <Card
-            className={`border transition-all ${
-              callsEnabled
-                ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/20 dark:bg-indigo-950/20'
-                : 'opacity-70'
-            }`}
-          >
-            <CardHeader className="p-5 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                  <PhoneCall className="w-5 h-5" />
-                </div>
-                <Switch
-                  checked={callsEnabled}
-                  onCheckedChange={setCallsEnabled}
-                />
+        <Card
+          className={`border transition-all ${
+            messagesEnabled
+              ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/20'
+              : 'opacity-70'
+          }`}
+        >
+          <CardHeader className="p-5 pb-3">
+            <div className="flex items-center justify-between">
+              <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <MessageSquare className="w-5 h-5" />
               </div>
-              <CardTitle className="text-base font-bold mt-3">
-                {t('voiceCallsChannel')}
-              </CardTitle>
-              <CardDescription className="text-xs leading-relaxed">
-                {t('voiceCallsChannelDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Badge variant={callsEnabled ? 'default' : 'secondary'} className="text-[11px]">
-                {callsEnabled ? 'Active (Outbound IVR)' : 'Disabled'}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          {/* Auto Call on Registration Switch */}
-          <Card
-            className={`border transition-all ${
-              autoCallOnRegistration
-                ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/20'
-                : 'opacity-70'
-            }`}
-          >
-            <CardHeader className="p-5 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <Zap className="w-5 h-5" />
-                </div>
-                <Switch
-                  checked={autoCallOnRegistration}
-                  onCheckedChange={setAutoCallOnRegistration}
-                />
-              </div>
-              <CardTitle className="text-base font-bold mt-3">
-                {t('autoCallRegistration')}
-              </CardTitle>
-              <CardDescription className="text-xs leading-relaxed">
-                {t('autoCallRegistrationDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Badge variant={autoCallOnRegistration ? 'success' : 'secondary'} className="text-[11px]">
-                {autoCallOnRegistration ? 'Enabled (Auto Call)' : 'Disabled'}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          {/* WhatsApp Messages Switch */}
-          <Card
-            className={`border transition-all ${
-              messagesEnabled
-                ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/20'
-                : 'opacity-70'
-            }`}
-          >
-            <CardHeader className="p-5 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5" />
-                </div>
-                <Switch
-                  checked={messagesEnabled}
-                  onCheckedChange={setMessagesEnabled}
-                />
-              </div>
-              <CardTitle className="text-base font-bold mt-3">
-                {t('whatsappChannel')}
-              </CardTitle>
-              <CardDescription className="text-xs leading-relaxed">
-                {t('whatsappChannelDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Badge variant={messagesEnabled ? 'success' : 'secondary'} className="text-[11px]">
-                {messagesEnabled ? 'Active (WhatsApp Alerts)' : 'Disabled'}
-              </Badge>
-            </CardContent>
-          </Card>
-        </div>
+              <Switch
+                checked={messagesEnabled}
+                onCheckedChange={setMessagesEnabled}
+              />
+            </div>
+            <CardTitle className="text-base font-bold mt-3">
+              Automated WhatsApp Reminders
+            </CardTitle>
+            <CardDescription className="text-xs leading-relaxed">
+              Sends formatted WhatsApp renewal messages directly to vehicle owners before and after expiry.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-5 pt-0">
+            <Badge variant={messagesEnabled ? 'success' : 'secondary'} className="text-[11px] font-bold">
+              {messagesEnabled ? 'Active (WhatsApp Reminders ON)' : 'Disabled'}
+            </Badge>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* SECTION 2: LIMITS & TRAI OPERATING WINDOW */}
+      {/* SECTION 2: LIMITS & TIMELINE CADENCE */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Limits & Retry Card */}
+        {/* Limits Card */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center gap-2">
-              <RotateCcw className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              {t('limitsScheduleTitle')}
+              <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              Messaging Limits & Frequency
             </CardTitle>
             <CardDescription className="text-xs">
-              {t('limitsScheduleDesc')}
+              Prevent spamming customers by capping reminder messages.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('maxCallsPerCustomer')}
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={maxCalls}
-                  onChange={(e) => setMaxCalls(Number(e.target.value))}
-                  className="font-mono"
-                />
-                <span className="text-[11px] text-slate-400">Default: 3 attempts</span>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('maxMessagesPerCustomer')}
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={maxMessages}
-                  onChange={(e) => setMaxMessages(Number(e.target.value))}
-                  className="font-mono"
-                />
-                <span className="text-[11px] text-slate-400">Default: 3 messages</span>
-              </div>
-            </div>
-
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {t('retryInterval')} ({t('minutes')})
+                {t('maxMessagesPerCustomer')}
               </label>
               <Input
                 type="number"
-                min={15}
-                max={1440}
-                step={15}
-                value={retryInterval}
-                onChange={(e) => setRetryInterval(Number(e.target.value))}
+                min={1}
+                max={10}
+                value={maxMessages}
+                onChange={(e) => setMaxMessages(Number(e.target.value))}
                 className="font-mono"
               />
               <span className="text-[11px] text-slate-400">
-                Minimum 15 mins to prevent customer spamming (Recommended: 60 min)
+                Recommended: 3 messages per certificate (Pre-expiry, On Expiry, Overdue)
               </span>
             </div>
           </CardContent>
         </Card>
 
-        {/* TRAI Window & Reminder Cadence Card */}
+        {/* Cadence Timeline Card */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center gap-2">
-              <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              {t('traiWindow')}
+              <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              {t('cadenceTitle')}
             </CardTitle>
             <CardDescription className="text-xs">
-              {t('traiWindowDesc')}
+              {t('cadenceDesc')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('windowStart')}
-                </label>
-                <Input
-                  type="time"
-                  value={windowStart}
-                  onChange={(e) => setWindowStart(e.target.value)}
-                  className="font-mono text-sm"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('windowEnd')}
-                </label>
-                <Input
-                  type="time"
-                  value={windowEnd}
-                  onChange={(e) => setWindowEnd(e.target.value)}
-                  className="font-mono text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                 {t('daysBeforeExpiry')}
               </label>
@@ -522,7 +307,7 @@ export function SettingsView() {
                       onClick={() => toggleDayBefore(item.value)}
                       className={`text-xs px-3 py-1.5 rounded-full font-medium border transition-all cursor-pointer ${
                         selected
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                           : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -531,8 +316,10 @@ export function SettingsView() {
                   );
                 })}
               </div>
+            </div>
 
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block pt-1">
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                 {t('daysAfterExpiry')}
               </label>
               <div className="flex flex-wrap gap-2">
@@ -563,8 +350,8 @@ export function SettingsView() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-bold flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            {t('templatesTitle')}
+            <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            WhatsApp Message Templates
           </CardTitle>
           <CardDescription className="text-xs">
             {t('templatesDesc')}
@@ -572,10 +359,9 @@ export function SettingsView() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="puc">
-            <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsList className="grid w-full grid-cols-2 max-w-sm">
               <TabsTrigger value="puc">PUC WhatsApp</TabsTrigger>
               <TabsTrigger value="insurance">Insurance WhatsApp</TabsTrigger>
-              <TabsTrigger value="voice">Voice Script (IVR)</TabsTrigger>
             </TabsList>
 
             {/* PUC Template Tab */}
@@ -607,7 +393,7 @@ export function SettingsView() {
                           key={token}
                           type="button"
                           onClick={() => insertPlaceholder(setPucTemplate, token)}
-                          className="text-[11px] bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-indigo-400 cursor-pointer"
+                          className="text-[11px] bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-emerald-400 cursor-pointer"
                         >
                           {token}
                         </button>
@@ -619,7 +405,7 @@ export function SettingsView() {
                 {/* Live Preview */}
                 <div className="space-y-2">
                   <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 text-indigo-500" />
+                    <Info className="w-3.5 h-3.5 text-emerald-500" />
                     {t('livePreview')}
                   </span>
                   <div className="rounded-xl border border-emerald-200 dark:border-emerald-950 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 min-h-[200px] flex flex-col justify-end">
@@ -668,7 +454,7 @@ export function SettingsView() {
                           key={token}
                           type="button"
                           onClick={() => insertPlaceholder(setInsTemplate, token)}
-                          className="text-[11px] bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-indigo-400 cursor-pointer"
+                          className="text-[11px] bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-emerald-400 cursor-pointer"
                         >
                           {token}
                         </button>
@@ -700,174 +486,23 @@ export function SettingsView() {
                 </div>
               </div>
             </TabsContent>
-
-            {/* Voice Script Tab */}
-            <TabsContent value="voice" className="space-y-4">
-              <div className="space-y-3 pt-2">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('voiceCallScript')}
-                </label>
-                <Textarea
-                  rows={6}
-                  value={voiceTemplate}
-                  onChange={(e) => setVoiceTemplate(e.target.value)}
-                  className="font-mono text-xs leading-relaxed"
-                  placeholder="નમસ્તે {customer_name}, આપના વાહન {vehicle_number} નું પીયુસી પ્રમાણપત્ર ટૂંક સમયમાં સમાપ્ત થઈ રહ્યું છે..."
-                />
-                <div>
-                  <span className="text-[11px] font-semibold text-slate-500 block mb-1.5">
-                    {t('availablePlaceholders')}
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {PLACEHOLDERS.map((token) => (
-                      <button
-                        key={token}
-                        type="button"
-                        onClick={() => insertPlaceholder(setVoiceTemplate, token)}
-                        className="text-[11px] bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-indigo-400 cursor-pointer"
-                      >
-                        {token}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* SECTION 4: EXOTEL TELEPHONY CONFIGURATION */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <KeyRound className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                {t('telephonyTitle')}
-              </CardTitle>
-              <CardDescription className="text-xs">
-                {t('telephonyDesc')}
-              </CardDescription>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleTestTelephony}
-              disabled={testingConnection}
-              className="gap-2 shrink-0 cursor-pointer"
-            >
-              <Zap className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              {testingConnection ? t('testingConnection') : t('testConnection')}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {t('accountSid')}
-              </label>
-              <Input
-                value={accountSid}
-                onChange={(e) => setAccountSid(e.target.value)}
-                placeholder="e.g. exotel_tenant_sid"
-                className="font-mono text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {t('callerId')}
-              </label>
-              <Input
-                value={callerId}
-                onChange={(e) => setCallerId(e.target.value)}
-                placeholder="e.g. 09513886363"
-                className="font-mono text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {t('subdomain')}
-              </label>
-              <Input
-                value={subdomain}
-                onChange={(e) => setSubdomain(e.target.value)}
-                placeholder="api.exotel.com"
-                className="font-mono text-xs"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('apiKey')}
-                </label>
-                {hasApiKey && (
-                  <Badge variant="success" className="text-[10px] py-0 px-1.5">
-                    Configured & Encrypted
-                  </Badge>
-                )}
-              </div>
-              <Input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder={hasApiKey ? '••••••••••••••••••••••••' : 'Enter new API Key'}
-                className="font-mono text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('apiToken')}
-                </label>
-                {hasApiToken && (
-                  <Badge variant="success" className="text-[10px] py-0 px-1.5">
-                    Configured & Encrypted
-                  </Badge>
-                )}
-              </div>
-              <Input
-                type="password"
-                value={apiToken}
-                onChange={(e) => setApiToken(e.target.value)}
-                placeholder={hasApiToken ? '••••••••••••••••••••••••' : 'Enter new API Token'}
-                className="font-mono text-xs"
-              />
-            </div>
-          </div>
-
-          {lastTestedAt && (
-            <div className="pt-2 text-xs flex items-center gap-2 text-slate-500">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>
-                Last tested: {new Date(lastTestedAt).toLocaleString()} • Status: {lastTestStatus || 'OK'}
-              </span>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {/* Sticky Bottom Save Bar */}
       <div className="sticky bottom-4 z-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 shadow-xl flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-          <Shield className="w-4 h-4 text-indigo-500" />
-          <span>All changes are encrypted and synchronized instantly across voice callers.</span>
+          <Shield className="w-4 h-4 text-emerald-500" />
+          <span>All WhatsApp reminders are queued and dispatched safely to customers.</span>
         </div>
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="font-bold shadow-md shadow-indigo-600/20 gap-2 cursor-pointer"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20 gap-2 cursor-pointer"
         >
           <Save className="w-4 h-4" />
-          {saving ? t('saving') : t('saveAllSettings')}
+          {saving ? t('saving') : 'Save Settings'}
         </Button>
       </div>
     </div>

@@ -153,8 +153,8 @@ const translations: Record<Language, Translations> = {
     navSettings: 'Settings & Automation',
     navCustomers: 'Customers',
     searchPlaceholder: 'Search vehicle (GJ01AB1234), name, phone...',
-    liveStatus: 'Automated Calling Active',
-    engineLive: 'Live Exotel',
+    liveStatus: 'WhatsApp Reminders Active',
+    engineLive: 'Live WhatsApp',
     engineMock: 'Demo Mode',
 
     language: 'Language',
@@ -283,8 +283,8 @@ const translations: Record<Language, Translations> = {
     navSettings: 'સેટિંગ્સ અને ઓટોમેશન',
     navCustomers: 'ગ્રાહકોની યાદી',
     searchPlaceholder: 'વાહન નંબર (GJ01AB1234), નામ, મોબાઈલ શોધો...',
-    liveStatus: 'ઓટોમેટેડ કોલિંગ સક્રિય છે',
-    engineLive: 'લાઈવ એક્ઝોટેલ (Live)',
+    liveStatus: 'વોટ્સએપ રીમાઇન્ડર્સ સક્રિય છે',
+    engineLive: 'લાઈવ વોટ્સએપ',
     engineMock: 'ડેમો મોડ (Mock)',
 
     language: 'ભાષા પસંદ કરો',
@@ -413,8 +413,8 @@ const translations: Record<Language, Translations> = {
     navSettings: 'सेटिंग्स और स्वचालन',
     navCustomers: 'ग्राहक सूची',
     searchPlaceholder: 'वाहन संख्या (GJ01AB1234), नाम, मोबाइल खोजें...',
-    liveStatus: 'स्वचालित कॉलिंग सक्रिय है',
-    engineLive: 'लाइव एक्सोटेल (Live)',
+    liveStatus: 'व्हाट्सएप रिमाइंडर सक्रिय है',
+    engineLive: 'लाइव व्हाट्सएप',
     engineMock: 'डेमो मोड (Mock)',
 
     language: 'भाषा चुनें',
