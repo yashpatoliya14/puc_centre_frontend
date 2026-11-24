@@ -32,6 +32,14 @@
 }
 
 @layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  [type="submit"]:not(:disabled) {
+    cursor: pointer;
+  }
+
   html {
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: var(--background);

@@ -91,7 +91,7 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
+            className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -166,7 +166,7 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden p-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="md:hidden p-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             >
               <Menu className="h-5 w-5" />
             </button>
