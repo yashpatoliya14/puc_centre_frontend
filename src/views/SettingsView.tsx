@@ -10,6 +10,10 @@ import {
   Gauge,
   CalendarClock,
   Sliders,
+  Play,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiRequest } from '../lib/api';
@@ -57,11 +61,42 @@ const AVAILABLE_DAYS_AFTER = [
 
 const DEFAULT_SLOT_TIMES = ['09:30', '13:00', '17:00', '19:00', '11:00', '15:00', '18:00', '20:00'];
 
+interface WhatsAppLogItem {
+  id: string;
+  customer_name?: string;
+  registration_number?: string;
+  entity_type: 'puc' | 'insurance';
+  dispatch_date_ist: string;
+  slot_time: string;
+  template_name: string;
+  phone_number: string;
+  status: 'sent' | 'failed';
+  error_message?: string | null;
+  created_at: string;
+}
+
+interface WhatsAppEngineSummary {
+  messagesEnabled: boolean;
+  dailyLimit: number;
+  sentToday: number;
+  failedToday: number;
+  remainingToday: number;
+  frequencyCount: number;
+  deliveryTimes: string[];
+  todayIst: string;
+}
+
 export function SettingsView() {
   const { t } = useI18n();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // WhatsApp Engine Live Status & Logs
+  const [waSummary, setWaSummary] = useState<WhatsAppEngineSummary | null>(null);
+  const [waLogs, setWaLogs] = useState<WhatsAppLogItem[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [runningEngine, setRunningEngine] = useState(false);
 
   // WhatsApp Messaging Master Switch
   const [messagesEnabled, setMessagesEnabled] = useState(true);
@@ -116,9 +151,62 @@ export function SettingsView() {
     }
   }, []);
 
+  const loadWhatsAppLogs = useCallback(async () => {
+    setLoadingLogs(true);
+    try {
+      const res = await apiRequest<{
+        ok: boolean;
+        summary: WhatsAppEngineSummary;
+        items: WhatsAppLogItem[];
+      }>('/api/whatsapp/logs?limit=15');
+      setWaSummary(res.summary || null);
+      setWaLogs(res.items || []);
+    } catch {
+      // ignore initial log fetch error cleanly
+    } finally {
+      setLoadingLogs(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadSettings();
-  }, [loadSettings]);
+    loadWhatsAppLogs();
+  }, [loadSettings, loadWhatsAppLogs]);
+
+  const handleRunEngineNow = async (forceImmediate = false) => {
+    setRunningEngine(true);
+    try {
+      const res = await apiRequest<{
+        ok: boolean;
+        sent: number;
+        failed: number;
+        skipped: number;
+        deferredTime: number;
+        limitReached: number;
+      }>('/api/whatsapp/run-now', {
+        method: 'POST',
+        body: { forceImmediate },
+      });
+      if (res.sent > 0) {
+        toast.success(`WhatsApp Engine dispatched ${res.sent} message(s)!`);
+      } else if (res.limitReached > 0) {
+        toast.info('Daily Delivery Limit already reached for today');
+      } else if (res.deferredTime > 0 && !forceImmediate) {
+        toast.info('Configured delivery time has not arrived yet');
+      } else if (res.failed > 0) {
+        toast.error(`WhatsApp Engine finished with ${res.failed} failed delivery(s)`);
+      } else {
+        toast.info('No pending due reminders matching today’s schedule');
+      }
+      await loadWhatsAppLogs();
+    } catch (err) {
+      toast.error('Failed to run WhatsApp Engine', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      });
+    } finally {
+      setRunningEngine(false);
+    }
+  };
 
   const toggleDayBefore = (val: number) => {
     setRemindDaysBefore((prev) =>
@@ -217,6 +305,9 @@ export function SettingsView() {
 
       toast.success('Settings saved successfully');
       await loadSettings();
+      setTimeout(() => {
+        loadWhatsAppLogs();
+      }, 1500);
     } catch (err) {
       toast.error(t('saveFailed'), {
         description: err instanceof Error ? err.message : 'Please check input fields',
@@ -659,6 +750,97 @@ export function SettingsView() {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 4: WHATSAPP ENGINE ACTIVITY & LOGS */}
+      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                WhatsApp Engine Dispatch Status
+                {waSummary && (
+                  <Badge variant="outline" className="font-mono text-[11px] ml-1">
+                    Sent Today: {waSummary.sentToday} / {waSummary.dailyLimit}
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                Automatic 60s scheduler dispatches PUC &amp; Insurance reminders at your configured IST times ({(waSummary?.deliveryTimes || deliveryTimes).join(', ')}).
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={loadWhatsAppLogs}
+                disabled={loadingLogs}
+                className="h-8 text-xs gap-1 cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingLogs ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => handleRunEngineNow(true)}
+                disabled={runningEngine || !messagesEnabled}
+                className="h-8 text-xs gap-1 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5" />
+                {runningEngine ? 'Dispatching...' : 'Run Engine Now'}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-5">
+          {waLogs.length === 0 ? (
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-6">
+              No WhatsApp dispatches logged yet. Save your active delivery times or click “Run Engine Now” to dispatch matching due reminders.
+            </p>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+              {waLogs.map((log) => (
+                <div key={log.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-white dark:bg-slate-950/50">
+                  <div className="flex items-center gap-2.5">
+                    {log.status === 'sent' ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    )}
+                    <div>
+                      <div className="font-semibold text-slate-900 dark:text-slate-100 flex flex-wrap items-center gap-1.5">
+                        <span>{log.customer_name || 'Customer'}</span>
+                        {log.registration_number && (
+                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                            {log.registration_number}
+                          </span>
+                        )}
+                        <Badge variant="secondary" className="text-[10px]">
+                          {log.entity_type.toUpperCase()} • {log.template_name}
+                        </Badge>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                        {log.phone_number} • Slot: {log.slot_time} ({log.dispatch_date_ist})
+                        {log.error_message && <span className="text-red-500 ml-2">({log.error_message})</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge
+                    variant={log.status === 'sent' ? 'default' : 'destructive'}
+                    className={`text-[10px] self-start sm:self-center ${
+                      log.status === 'sent' ? 'bg-emerald-600 hover:bg-emerald-600 text-white' : ''
+                    }`}
+                  >
+                    {log.status === 'sent' ? 'Sent' : 'Failed'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
