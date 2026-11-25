@@ -77,13 +77,12 @@ interface WhatsAppLogItem {
 
 interface WhatsAppEngineSummary {
   messagesEnabled: boolean;
-  dailyLimit: number;
   sentToday: number;
   failedToday: number;
-  remainingToday: number;
   frequencyCount: number;
   deliveryTimes: string[];
   todayIst: string;
+  unlimited?: boolean;
 }
 
 export function SettingsView() {
@@ -100,7 +99,6 @@ export function SettingsView() {
 
   // WhatsApp Messaging Master Switch
   const [messagesEnabled, setMessagesEnabled] = useState(true);
-  const [dailyLimitInput, setDailyLimitInput] = useState('100');
   const [frequencyCount, setFrequencyCount] = useState(1);
   const [deliveryTimes, setDeliveryTimes] = useState<string[]>(['10:00']);
 
@@ -126,7 +124,6 @@ export function SettingsView() {
       const s = res.simplified;
       if (s) {
         setMessagesEnabled(s.messagesEnabled ?? true);
-        setDailyLimitInput(String(s.dailyMessageLimit ?? 100));
         const count = Math.min(12, Math.max(1, s.deliveryFrequencyCount ?? 1));
         setFrequencyCount(count);
         const loadedTimes = Array.isArray(s.deliveryTimes) && s.deliveryTimes.length > 0
@@ -189,8 +186,6 @@ export function SettingsView() {
       });
       if (res.sent > 0) {
         toast.success(`WhatsApp Engine dispatched ${res.sent} message(s)!`);
-      } else if (res.limitReached > 0) {
-        toast.info('Daily Delivery Limit already reached for today');
       } else if (res.deferredTime > 0 && !forceImmediate) {
         toast.info('Configured delivery time has not arrived yet');
       } else if (res.failed > 0) {
@@ -264,12 +259,6 @@ export function SettingsView() {
   };
 
   const handleSave = async () => {
-    const parsedDaily = parseInt(dailyLimitInput, 10);
-    if (Number.isNaN(parsedDaily) || parsedDaily < 1 || parsedDaily > 10000) {
-      toast.error('Please enter a Daily Delivery Limit between 1 and 10000');
-      return;
-    }
-    const safeDailyLimit = parsedDaily;
     const safeFreqCount = Math.min(12, Math.max(1, Number(frequencyCount) || 1));
     const safeTimes = Array.from(
       { length: safeFreqCount },
@@ -285,7 +274,7 @@ export function SettingsView() {
         maxCallsPerCustomer: 1,
         retryIntervalMinutes: 60,
         maxMessagesPerCustomer: 3,
-        dailyMessageLimit: safeDailyLimit,
+        dailyMessageLimit: 10000,
         deliveryFrequency: `${safeFreqCount}x_daily`,
         deliveryFrequencyCount: safeFreqCount,
         deliveryTimes: safeTimes,
@@ -399,10 +388,7 @@ export function SettingsView() {
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-between lg:justify-end">
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-600 dark:text-slate-300">
               <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 font-mono">
-                {dailyLimitInput || '0'}/day
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 font-mono">
-                {frequencyCount} {frequencyCount === 1 ? 'time' : 'times'}/day
+                {frequencyCount} {frequencyCount === 1 ? 'time' : 'times'}/day per customer
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700">
                 {totalSchedulePoints} schedule rules
@@ -422,40 +408,20 @@ export function SettingsView() {
         </CardContent>
       </Card>
 
-      {/* SECTION 2: DELIVERY LIMIT & REMINDER SCHEDULE */}
+      {/* SECTION 2: FREQUENCY, TIMING & REMINDER SCHEDULE */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Delivery Limit Card */}
+        {/* Delivery Frequency & Timing Card */}
         <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col">
           <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Gauge className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              Delivery Limit & Frequency
+              Delivery Frequency &amp; Timing
             </CardTitle>
             <CardDescription className="text-xs">
-              Control daily message volume and reminder dispatch times.
+              Applied per eligible customer based on your selected frequency and IST clock times (no daily limit).
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-5 space-y-5 flex-1">
-            {/* Daily Limit */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3.5 space-y-2">
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
-                Daily Delivery Limit
-              </label>
-
-              <Input
-                type="number"
-                min={1}
-                max={10000}
-                value={dailyLimitInput}
-                onChange={(e) => setDailyLimitInput(e.target.value)}
-                placeholder="Enter daily message limit (e.g. 100)"
-                className="font-mono text-xs h-9 bg-white dark:bg-slate-950"
-              />
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
-                Maximum WhatsApp reminders dispatched across your PUC centre per day.
-              </span>
-            </div>
-
             {/* Delivery Frequency + Customer Clock Time Slots */}
             <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3.5 space-y-3">
               <div className="flex items-center justify-between gap-2">
@@ -763,7 +729,7 @@ export function SettingsView() {
                 WhatsApp Engine Dispatch Status
                 {waSummary && (
                   <Badge variant="outline" className="font-mono text-[11px] ml-1">
-                    Sent Today: {waSummary.sentToday} / {waSummary.dailyLimit}
+                    Sent Today: {waSummary.sentToday} (Unlimited)
                   </Badge>
                 )}
               </CardTitle>
