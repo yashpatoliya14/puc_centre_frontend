@@ -81,6 +81,36 @@
   .dark {
     letter-spacing: 0.005em;
   }
+
+  ::selection,
+  ::-moz-selection {
+    background-color: #4f46e5;
+    color: #ffffff;
+  }
+
+  .dark ::selection,
+  html.dark ::selection,
+  .dark ::-moz-selection,
+  html.dark ::-moz-selection {
+    background-color: #818cf8;
+    color: #0b0d12;
+  }
+
+  select option {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .dark select option,
+  html.dark select option {
+    background-color: #11141c;
+    color: #f1f5f9;
+  }
+
+  select option:checked {
+    background-color: #4f46e5;
+    color: #ffffff;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
