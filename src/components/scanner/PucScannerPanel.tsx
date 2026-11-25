@@ -169,7 +169,9 @@ export function PucScannerPanel({
   // ---------------------------------------------------------------------------
   // EXTRACT SINGLE FILE (PDF + IMAGE QR & OCR)
   // ---------------------------------------------------------------------------
-  const extractSingleFile = async (file: File): Promise<ExtractedPucData | null> => {
+  const extractSingleFile = async (
+    file: File,
+  ): Promise<{ data: ExtractedPucData | null; error?: string }> => {
     const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
     const isImage = file.type.startsWith('image/');
 
@@ -185,13 +187,15 @@ export function PucScannerPanel({
             isFormData: true,
           },
         );
-        if (res.ok && res.data) {
-          return { ...res.data, fileName: file.name };
+        if (res.ok && res.data && res.data.regNumber) {
+          return { data: { ...res.data, fileName: file.name } };
         }
+        return { data: null, error: 'Could not find vehicle registration number in PDF' };
       } catch (err) {
+        const msg = err instanceof Error ? err.message : 'PDF extraction failed';
         console.warn(`PDF parse error for ${file.name}:`, err);
+        return { data: null, error: msg };
       }
-      return null;
     }
 
     if (isImage) {
@@ -216,6 +220,7 @@ export function PucScannerPanel({
 
       // Run OCR if QR wasn't found or is missing key details (e.g. regNumber, owner name, or expiry)
       let ocrData: Partial<ExtractedPucData> | null = null;
+      let ocrError: string | undefined;
       if (!qrData?.regNumber || !qrData?.fullName || !qrData?.expiryDate) {
         try {
           const formData = new FormData();
@@ -232,6 +237,7 @@ export function PucScannerPanel({
             ocrData = res.data;
           }
         } catch (err) {
+          ocrError = err instanceof Error ? err.message : 'Image OCR request failed';
           console.warn(`Image OCR error for ${file.name}:`, err);
         }
       }
@@ -239,13 +245,16 @@ export function PucScannerPanel({
       if (qrData || ocrData) {
         const merged = mergeExtracted(qrData || {}, ocrData || {});
         if (merged.regNumber) {
-          return { ...merged, fileName: file.name };
+          return { data: { ...merged, fileName: file.name } };
         }
       }
-      return null;
+      return {
+        data: null,
+        error: ocrError || 'Ensure the Parivahan document has clear text or QR code',
+      };
     }
 
-    return null;
+    return { data: null, error: 'Unsupported file format' };
   };
 
   // ---------------------------------------------------------------------------
@@ -270,7 +279,7 @@ export function PucScannerPanel({
     // CASE A: Single File -> Immediate Auto-Fill
     if (files.length === 1) {
       setUploadProgress('Extracting certificate details...');
-      const extracted = await extractSingleFile(files[0]);
+      const { data: extracted, error } = await extractSingleFile(files[0]);
       setFileUploading(false);
       setUploadProgress(null);
 
@@ -279,7 +288,7 @@ export function PucScannerPanel({
         handleSuccess(extracted, `Parivahan ${fileTypeLabel}`);
       } else {
         toast.error(`Could not read certificate from ${files[0].name}`, {
-          description: 'Ensure the Parivahan document has clear text or QR code',
+          description: error || 'Ensure the Parivahan document has clear text or QR code',
         });
       }
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -289,13 +298,16 @@ export function PucScannerPanel({
     // CASE B: Multiple Files (BULK MODE) -> Process all in batch
     setUploadProgress(`Processing 0 / ${files.length} certificates...`);
     const successful: ExtractedPucData[] = [];
+    let lastError: string | undefined;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setUploadProgress(`Extracting ${i + 1} / ${files.length}: ${file.name}...`);
-      const res = await extractSingleFile(file);
-      if (res && res.regNumber) {
-        successful.push(res);
+      const { data, error } = await extractSingleFile(file);
+      if (data && data.regNumber) {
+        successful.push(data);
+      } else if (error) {
+        lastError = error;
       }
     }
 
@@ -304,7 +316,9 @@ export function PucScannerPanel({
     if (fileInputRef.current) fileInputRef.current.value = '';
 
     if (successful.length === 0) {
-      toast.error(`Could not extract valid certificates from the ${files.length} selected files.`);
+      toast.error(`Could not extract valid certificates from the ${files.length} selected files.`, {
+        description: lastError,
+      });
       return;
     }
 
