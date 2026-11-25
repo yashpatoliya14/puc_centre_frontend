@@ -5,10 +5,10 @@ import {
   Save,
   Info,
   Plus,
+  Minus,
   X,
   Gauge,
   CalendarClock,
-  CheckCircle2,
   Sliders,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -29,6 +29,8 @@ interface SimplifiedSettings {
   maxMessagesPerCustomer: number;
   dailyMessageLimit: number;
   deliveryFrequency: string;
+  deliveryFrequencyCount?: number;
+  deliveryTimes?: string[];
   callingWindowStart: string;
   callingWindowEnd: string;
   remindDaysBefore: number[];
@@ -53,15 +55,7 @@ const AVAILABLE_DAYS_AFTER = [
   { value: 15, label: '15d Overdue' },
 ];
 
-const DAILY_LIMIT_PRESETS = [50, 100, 250, 500];
-
-const DELIVERY_FREQUENCIES = [
-  { value: 'every_15_min', label: 'Every 15 Min', desc: 'Fast pacing' },
-  { value: 'every_30_min', label: 'Every 30 Min', desc: 'Balanced' },
-  { value: 'hourly', label: 'Hourly', desc: 'Recommended' },
-  { value: 'every_6_hours', label: 'Every 6 Hours', desc: 'Low volume' },
-  { value: 'once_daily', label: 'Once Daily', desc: 'Single batch' },
-];
+const DEFAULT_SLOT_TIMES = ['09:30', '13:00', '17:00', '19:00', '11:00', '15:00', '18:00', '20:00'];
 
 export function SettingsView() {
   const { t } = useI18n();
@@ -73,7 +67,8 @@ export function SettingsView() {
   const [messagesEnabled, setMessagesEnabled] = useState(true);
   const [maxMessages, setMaxMessages] = useState(3);
   const [dailyLimit, setDailyLimit] = useState(100);
-  const [deliveryFrequency, setDeliveryFrequency] = useState('hourly');
+  const [frequencyCount, setFrequencyCount] = useState(1);
+  const [deliveryTimes, setDeliveryTimes] = useState<string[]>(['10:00']);
 
   // Reminder Timeline
   const [remindDaysBefore, setRemindDaysBefore] = useState<number[]>([7, 3, 0]);
@@ -99,7 +94,14 @@ export function SettingsView() {
         setMessagesEnabled(s.messagesEnabled ?? true);
         setMaxMessages(s.maxMessagesPerCustomer ?? 3);
         setDailyLimit(s.dailyMessageLimit ?? 100);
-        setDeliveryFrequency(s.deliveryFrequency || 'hourly');
+        const count = Math.min(12, Math.max(1, s.deliveryFrequencyCount ?? 1));
+        setFrequencyCount(count);
+        const loadedTimes = Array.isArray(s.deliveryTimes) && s.deliveryTimes.length > 0
+          ? s.deliveryTimes
+          : ['10:00'];
+        setDeliveryTimes(
+          Array.from({ length: count }, (_, idx) => loadedTimes[idx] || DEFAULT_SLOT_TIMES[idx % DEFAULT_SLOT_TIMES.length]),
+        );
         setRemindDaysBefore(s.remindDaysBefore || [7, 3, 0]);
         setRemindDaysAfter(s.remindDaysAfter || [1, 3]);
         setBusinessName(s.businessName || '');
@@ -156,9 +158,33 @@ export function SettingsView() {
     setCustomAfterInput('');
   };
 
+  const updateFrequencyCount = (nextRaw: number) => {
+    const count = Math.min(12, Math.max(1, Number.isNaN(nextRaw) ? 1 : nextRaw));
+    setFrequencyCount(count);
+    setDeliveryTimes((prev) =>
+      Array.from(
+        { length: count },
+        (_, idx) => prev[idx] || DEFAULT_SLOT_TIMES[idx % DEFAULT_SLOT_TIMES.length],
+      ),
+    );
+  };
+
+  const updateDeliveryTime = (index: number, value: string) => {
+    setDeliveryTimes((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
   const handleSave = async () => {
     const safeDailyLimit = Math.min(10000, Math.max(1, Number(dailyLimit) || 100));
     const safeMaxMessages = Math.min(20, Math.max(1, Number(maxMessages) || 3));
+    const safeFreqCount = Math.min(12, Math.max(1, Number(frequencyCount) || 1));
+    const safeTimes = Array.from(
+      { length: safeFreqCount },
+      (_, idx) => deliveryTimes[idx] || DEFAULT_SLOT_TIMES[idx % DEFAULT_SLOT_TIMES.length],
+    );
 
     setSaving(true);
     try {
@@ -170,7 +196,9 @@ export function SettingsView() {
         retryIntervalMinutes: 60,
         maxMessagesPerCustomer: safeMaxMessages,
         dailyMessageLimit: safeDailyLimit,
-        deliveryFrequency,
+        deliveryFrequency: `${safeFreqCount}x_daily`,
+        deliveryFrequencyCount: safeFreqCount,
+        deliveryTimes: safeTimes,
         callingWindowStart: '09:30',
         callingWindowEnd: '19:30',
         remindDaysBefore,
@@ -195,9 +223,6 @@ export function SettingsView() {
       setSaving(false);
     }
   };
-
-  const activeFrequencyLabel =
-    DELIVERY_FREQUENCIES.find((f) => f.value === deliveryFrequency)?.label || 'Hourly';
 
   const totalSchedulePoints = remindDaysBefore.length + remindDaysAfter.length;
 
@@ -283,8 +308,8 @@ export function SettingsView() {
               <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 font-mono">
                 {dailyLimit}/day
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
-                {activeFrequencyLabel}
+              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 font-mono">
+                {frequencyCount} {frequencyCount === 1 ? 'time' : 'times'}/day
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
                 {totalSchedulePoints} schedule rules
@@ -319,93 +344,92 @@ export function SettingsView() {
           </CardHeader>
           <CardContent className="p-4 sm:p-5 space-y-5 flex-1">
             {/* Daily Limit */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-2.5">
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   Daily Delivery Limit
                 </label>
-                <span className="text-[11px] font-mono text-slate-500">
-                  Max messages / day
-                </span>
+                <Badge variant="outline" className="font-mono text-[11px]">
+                  {dailyLimit || 0}/day
+                </Badge>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  max={10000}
-                  value={dailyLimit}
-                  onChange={(e) => setDailyLimit(Number(e.target.value))}
-                  className="font-mono text-xs h-9 bg-white dark:bg-slate-950 sm:w-32"
-                />
-                <div className="flex flex-wrap gap-1.5">
-                  {DAILY_LIMIT_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setDailyLimit(preset)}
-                      className={`text-[11px] px-2.5 py-1 rounded-md font-mono font-semibold border transition-colors cursor-pointer ${
-                        dailyLimit === preset
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-2xs'
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      {preset}/day
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <Input
+                type="number"
+                min={1}
+                max={10000}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+                placeholder="Enter daily message limit"
+                className="font-mono text-xs h-9 bg-white dark:bg-slate-950"
+              />
               <span className="text-[11px] text-slate-400 block">
-                Caps total WhatsApp reminders dispatched across your PUC centre per day.
+                Maximum WhatsApp reminders dispatched across your PUC centre per day.
               </span>
             </div>
 
-            {/* Delivery Frequency */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-2.5">
+            {/* Delivery Frequency + Customer Clock Time Slots */}
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
-                  Delivery Frequency
-                </label>
-                <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
-                  {activeFrequencyLabel}
-                </span>
+                <div>
+                  <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
+                    Delivery Frequency
+                  </label>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                    Set how many times per day to send reminders and pick each time from the clock.
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    onClick={() => updateFrequencyCount(frequencyCount - 1)}
+                    disabled={frequencyCount <= 1}
+                    className="h-8 w-8 cursor-pointer"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </Button>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={frequencyCount}
+                    onChange={(e) => updateFrequencyCount(parseInt(e.target.value, 10))}
+                    className="w-14 h-8 text-center font-mono text-xs bg-white dark:bg-slate-950"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    onClick={() => updateFrequencyCount(frequencyCount + 1)}
+                    disabled={frequencyCount >= 12}
+                    className="h-8 w-8 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {DELIVERY_FREQUENCIES.map((freq) => {
-                  const selected = deliveryFrequency === freq.value;
-                  return (
-                    <button
-                      key={freq.value}
-                      type="button"
-                      onClick={() => setDeliveryFrequency(freq.value)}
-                      className={`text-left px-2.5 py-2 rounded-lg border transition-all cursor-pointer ${
-                        selected
-                          ? 'border-indigo-600 bg-indigo-50/80 dark:border-indigo-500 dark:bg-indigo-950/50 shadow-2xs'
-                          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:border-slate-300 dark:hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1">
-                        <span
-                          className={`text-xs font-semibold ${
-                            selected
-                              ? 'text-indigo-700 dark:text-indigo-300'
-                              : 'text-slate-800 dark:text-slate-200'
-                          }`}
-                        >
-                          {freq.label}
-                        </span>
-                        {selected && (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        )}
-                      </div>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                        {freq.desc}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+                {deliveryTimes.slice(0, frequencyCount).map((timeVal, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-1"
+                  >
+                    <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-indigo-500" />
+                      Time {idx + 1}
+                    </label>
+                    <Input
+                      type="time"
+                      value={timeVal}
+                      onChange={(e) => updateDeliveryTime(idx, e.target.value)}
+                      className="h-8 font-mono text-xs bg-transparent"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 
