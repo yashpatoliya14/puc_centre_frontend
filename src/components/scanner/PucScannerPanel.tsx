@@ -1,22 +1,17 @@
 import React, { useState, useRef } from 'react';
 import {
-  Car,
   FileText,
   Image as ImageIcon,
   CheckCircle2,
   RefreshCw,
   Zap,
-  Search,
-  ArrowRight,
   Layers,
   X,
-  AlertCircle,
 } from 'lucide-react';
 import jsQR from 'jsqr';
 import { toast } from 'sonner';
 import { apiRequest } from '../../lib/api';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 
 export interface ExtractedPucData {
@@ -38,7 +33,7 @@ export interface ExtractedPucData {
 interface PucScannerPanelProps {
   onExtracted?: (data: ExtractedPucData) => void;
   onBulkComplete?: () => void;
-  initialTab?: 'vehicle' | 'upload';
+  initialTab?: 'upload';
   hideTabs?: boolean;
 }
 
@@ -64,26 +59,74 @@ function playScanChime() {
   }
 }
 
+function tryDecodeQrFromImage(file: File): Promise<string | null> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const trySize = (w: number, h: number): string | null => {
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return null;
+          ctx.drawImage(img, 0, 0, w, h);
+          const imageData = ctx.getImageData(0, 0, w, h);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'attemptBoth',
+          });
+          return code?.data || null;
+        };
+
+        const direct = trySize(img.width, img.height);
+        if (direct) {
+          resolve(direct);
+          return;
+        }
+
+        // Retry scaled down for very high-res phone photos
+        if (img.width > 1400 || img.height > 1400) {
+          const scale = 1200 / Math.max(img.width, img.height);
+          const scaled = trySize(Math.round(img.width * scale), Math.round(img.height * scale));
+          if (scaled) {
+            resolve(scaled);
+            return;
+          }
+        }
+        resolve(null);
+      };
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+function mergeExtracted(primary: Partial<ExtractedPucData>, secondary: Partial<ExtractedPucData>): ExtractedPucData {
+  return {
+    regNumber: primary.regNumber || secondary.regNumber || '',
+    certificateNumber: primary.certificateNumber || secondary.certificateNumber || '',
+    issueDate: primary.issueDate || secondary.issueDate || '',
+    expiryDate: primary.expiryDate || secondary.expiryDate || '',
+    fuelType: primary.fuelType || secondary.fuelType || 'Petrol',
+    vehicleType: primary.vehicleType || secondary.vehicleType || '4-Wheeler',
+    makeModel: primary.makeModel || secondary.makeModel || '',
+    fullName: primary.fullName || secondary.fullName || '',
+    mobileNumber: primary.mobileNumber || secondary.mobileNumber || '',
+    insuranceCompany: primary.insuranceCompany || secondary.insuranceCompany,
+    insuranceExpiry: primary.insuranceExpiry || secondary.insuranceExpiry,
+    rawText: primary.rawText || secondary.rawText,
+  };
+}
+
 export function PucScannerPanel({
   onExtracted,
   onBulkComplete,
-  initialTab = 'vehicle',
-  hideTabs = false,
 }: PucScannerPanelProps) {
-  // 2 core options: 'vehicle' | 'upload' (unified for both PDF & Image with Bulk support)
-  const [activeTab, setActiveTab] = useState<'vehicle' | 'upload'>(initialTab);
-
-  React.useEffect(() => {
-    if (initialTab) {
-      setActiveTab(initialTab);
-    }
-  }, [initialTab]);
-
-  // Option 1: Vehicle Number
-  const [vehicleInput, setVehicleInput] = useState('');
-  const [vehicleLoading, setVehicleLoading] = useState(false);
-
-  // Option 2: Unified File Upload (PDF & Image, Single & Bulk)
+  // Unified File Upload (PDF & Image, Single & Bulk)
   const [fileUploading, setFileUploading] = useState(false);
   const [fileDragActive, setFileDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
@@ -124,38 +167,7 @@ export function PucScannerPanel({
   };
 
   // ---------------------------------------------------------------------------
-  // 1. VEHICLE NUMBER LOOKUP
-  // ---------------------------------------------------------------------------
-  const handleVehicleLookup = async (overridePlate?: string, e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const target = overridePlate || vehicleInput;
-    const clean = target.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    if (!clean || clean.length < 5) {
-      toast.error('Please enter a valid vehicle plate (e.g. GJ01AB1234)');
-      return;
-    }
-
-    setVehicleLoading(true);
-    try {
-      const res = await apiRequest<{
-        ok: boolean;
-        data: ExtractedPucData & { source?: string; rtoLocation?: string };
-      }>(`/api/scanner/lookup-vehicle?regNumber=${encodeURIComponent(clean)}`);
-
-      if (res.ok && res.data) {
-        handleSuccess(res.data, res.data.source || 'Vehicle Database');
-        setVehicleInput('');
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to fetch vehicle specifications';
-      toast.error(msg);
-    } finally {
-      setVehicleLoading(false);
-    }
-  };
-
-  // ---------------------------------------------------------------------------
-  // 2. EXTRACT SINGLE FILE (HELPER FOR BOTH PDF & IMAGE)
+  // EXTRACT SINGLE FILE (PDF + IMAGE QR & OCR)
   // ---------------------------------------------------------------------------
   const extractSingleFile = async (file: File): Promise<ExtractedPucData | null> => {
     const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
@@ -183,63 +195,54 @@ export function PucScannerPanel({
     }
 
     if (isImage) {
-      return new Promise<ExtractedPucData | null>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const dataUrl = e.target?.result as string;
-          const img = new Image();
-          img.onload = async () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0);
-              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const code = jsQR(imageData.data, imageData.width, imageData.height);
+      let qrData: Partial<ExtractedPucData> | null = null;
+      const qrText = await tryDecodeQrFromImage(file);
+      if (qrText) {
+        try {
+          const res = await apiRequest<{ ok: boolean; data: ExtractedPucData }>(
+            '/api/scanner/extract-qr',
+            {
+              method: 'POST',
+              body: { qrText },
+            },
+          );
+          if (res.ok && res.data) {
+            qrData = res.data;
+          }
+        } catch {
+          // Proceed to OCR
+        }
+      }
 
-              if (code && code.data) {
-                try {
-                  const res = await apiRequest<{ ok: boolean; data: ExtractedPucData }>(
-                    '/api/scanner/extract-qr',
-                    {
-                      method: 'POST',
-                      body: { qrText: code.data },
-                    },
-                  );
-                  if (res.ok && res.data) {
-                    resolve({ ...res.data, fileName: file.name });
-                    return;
-                  }
-                } catch {
-                  // Fallback to name heuristic
-                }
-              }
+      // Run OCR if QR wasn't found or is missing key details (e.g. regNumber, owner name, or expiry)
+      let ocrData: Partial<ExtractedPucData> | null = null;
+      if (!qrData?.regNumber || !qrData?.fullName || !qrData?.expiryDate) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await apiRequest<{ ok: boolean; data: ExtractedPucData }>(
+            '/api/scanner/extract-image',
+            {
+              method: 'POST',
+              body: formData,
+              isFormData: true,
+            },
+          );
+          if (res.ok && res.data) {
+            ocrData = res.data;
+          }
+        } catch (err) {
+          console.warn(`Image OCR error for ${file.name}:`, err);
+        }
+      }
 
-              // Fallback: check filename for plate number
-              const match = file.name.match(/[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}/i);
-              if (match) {
-                try {
-                  const res = await apiRequest<{ ok: boolean; data: ExtractedPucData }>(
-                    `/api/scanner/lookup-vehicle?regNumber=${encodeURIComponent(match[0].toUpperCase())}`,
-                  );
-                  if (res.ok && res.data) {
-                    resolve({ ...res.data, fileName: file.name });
-                    return;
-                  }
-                } catch {
-                  // Ignore
-                }
-              }
-            }
-            resolve(null);
-          };
-          img.onerror = () => resolve(null);
-          img.src = dataUrl;
-        };
-        reader.onerror = () => resolve(null);
-        reader.readAsDataURL(file);
-      });
+      if (qrData || ocrData) {
+        const merged = mergeExtracted(qrData || {}, ocrData || {});
+        if (merged.regNumber) {
+          return { ...merged, fileName: file.name };
+        }
+      }
+      return null;
     }
 
     return null;
@@ -348,7 +351,7 @@ export function PucScannerPanel({
 
   return (
     <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/60 dark:from-slate-900/90 dark:to-slate-900/40 p-4 sm:p-5 shadow-xs space-y-4">
-      {/* 1. Header & Segmented Switcher (Only 2 Tabs) */}
+      {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-100 dark:border-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-2xs">
@@ -357,7 +360,7 @@ export function PucScannerPanel({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                Auto-Fill & Bulk Registration
+                PDF & Image Certificate Extractor
               </span>
               <Badge
                 variant="outline"
@@ -367,45 +370,10 @@ export function PucScannerPanel({
               </Badge>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Fetch via vehicle plate, or upload single/bulk PDFs and Photos in one click
+              Upload single or multiple Parivahan PDFs and certificate photos to extract details automatically
             </p>
           </div>
         </div>
-
-        {/* 2 Clean Unified Tabs */}
-        {!hideTabs && (
-          <div className="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60 self-start sm:self-auto shadow-2xs">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('vehicle');
-                setBulkList([]);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'vehicle'
-                  ? 'bg-white dark:bg-slate-950 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Car className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>1. Vehicle Number</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'upload'
-                  ? 'bg-white dark:bg-slate-950 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <FileText className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
-              <ImageIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 -ml-0.5" />
-              <span>2. Upload PDF / Image</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* 2. Success Banner (Single File) */}
@@ -426,95 +394,8 @@ export function PucScannerPanel({
         </div>
       )}
 
-      {/* --------------------------------------------------------------------- */}
-      {/* TAB 1: VEHICLE NUMBER (Fast Plate Lookup)                             */}
-      {/* --------------------------------------------------------------------- */}
-      {activeTab === 'vehicle' && (
-        <div className="space-y-2.5 pt-0.5">
-          <div className="flex flex-col sm:flex-row gap-2">
-            {/* Styled Indian Plate Input Container */}
-            <div className="relative flex-1 flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-500/20 dark:focus-within:border-indigo-500 shadow-2xs transition-all overflow-hidden">
-              {/* Blue IND Strip */}
-              <div className="h-full px-2.5 py-2 bg-[#003399] text-white flex flex-col items-center justify-center select-none shrink-0 border-r border-blue-800">
-                <span className="text-[8px] font-black tracking-widest leading-none">IND</span>
-                <span className="text-[10px] leading-none mt-0.5">🇮🇳</span>
-              </div>
-
-              <Input
-                type="text"
-                value={vehicleInput}
-                onChange={(e) => setVehicleInput(e.target.value.toUpperCase())}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleVehicleLookup();
-                  }
-                }}
-                placeholder="GJ01AB1234"
-                className="border-0 shadow-none focus-visible:ring-0 font-mono font-bold text-sm sm:text-base tracking-wider uppercase h-10 px-3 bg-transparent text-slate-900 dark:text-white"
-              />
-
-              {vehicleInput && (
-                <button
-                  type="button"
-                  onClick={() => setVehicleInput('')}
-                  className="pr-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer text-xs font-medium"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            <Button
-              type="button"
-              onClick={() => handleVehicleLookup()}
-              disabled={vehicleLoading || !vehicleInput || vehicleInput.trim().length < 5}
-              className="h-10 px-4 font-semibold text-xs bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-600 shrink-0 gap-1.5 rounded-xl shadow-2xs cursor-pointer disabled:opacity-50"
-            >
-              {vehicleLoading ? (
-                <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                  <span>Fetching...</span>
-                </>
-              ) : (
-                <>
-                  <Search className="h-3.5 w-3.5" />
-                  <span>Fetch Details</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Quick Demo Plate Chips */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Quick Test:</span>
-            {['GJ01AB1234', 'GJ01BB7315', 'MH12CD5678'].map((plate) => (
-              <button
-                key={plate}
-                type="button"
-                onClick={() => {
-                  setVehicleInput(plate);
-                  handleVehicleLookup(plate);
-                }}
-                className="px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/60 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
-              >
-                {plate}
-              </button>
-            ))}
-            <span className="text-[10px] text-slate-400 ml-auto hidden sm:inline">
-              ⚡ Auto-detects Category, Fuel Type & Expiry
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* --------------------------------------------------------------------- */}
-      {/* TAB 2: UNIFIED UPLOAD (ONE BUTTON SUPPORTING BOTH PDF & IMAGE + BULK) */}
-      {/* --------------------------------------------------------------------- */}
-      {activeTab === 'upload' && (
-        <div className="space-y-3 pt-1">
+      {/* UNIFIED UPLOAD (PDF & IMAGE + BULK) */}
+      <div className="space-y-3 pt-1">
           {/* Hidden input supporting BOTH PDF and Images, plus multiple files */}
           <input
             ref={fileInputRef}
@@ -707,8 +588,7 @@ export function PucScannerPanel({
               </div>
             </div>
           )}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

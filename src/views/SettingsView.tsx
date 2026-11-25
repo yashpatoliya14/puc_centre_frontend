@@ -3,8 +3,9 @@ import {
   MessageSquare,
   Clock,
   Save,
-  Shield,
   Info,
+  Plus,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiRequest } from '../lib/api';
@@ -13,9 +14,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../co
 import { Button } from '../components/ui/button';
 import { Switch } from '../components/ui/switch';
 import { Input } from '../components/ui/input';
-import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 
 interface SimplifiedSettings {
   callsEnabled: boolean;
@@ -28,34 +27,24 @@ interface SimplifiedSettings {
   callingWindowEnd: string;
   remindDaysBefore: number[];
   remindDaysAfter: number[];
-  pucMessageTemplate: string;
-  insuranceMessageTemplate: string;
-  voiceScriptTemplate: string;
   businessName: string;
   ownerName: string;
   mobileNumber: string;
 }
 
 const AVAILABLE_DAYS_BEFORE = [
+  { value: 30, label: '30d Before' },
   { value: 15, label: '15d Before' },
   { value: 7, label: '7d Before' },
   { value: 3, label: '3d Before' },
   { value: 1, label: '1d Before' },
-  { value: 0, label: 'On Expiry Day (0d)' },
 ];
 
 const AVAILABLE_DAYS_AFTER = [
   { value: 1, label: '1d Overdue' },
   { value: 3, label: '3d Overdue' },
   { value: 7, label: '7d Overdue' },
-];
-
-const PLACEHOLDERS = [
-  '{customer_name}',
-  '{vehicle_number}',
-  '{puc_expiry_date}',
-  '{center_name}',
-  '{center_mobile}',
+  { value: 15, label: '15d Overdue' },
 ];
 
 export function SettingsView() {
@@ -71,32 +60,33 @@ export function SettingsView() {
   // Reminder Timeline
   const [remindDaysBefore, setRemindDaysBefore] = useState<number[]>([7, 3, 0]);
   const [remindDaysAfter, setRemindDaysAfter] = useState<number[]>([1, 3]);
-
-  // Templates
-  const [pucTemplate, setPucTemplate] = useState('');
-  const [insTemplate, setInsTemplate] = useState('');
+  const [customBeforeInput, setCustomBeforeInput] = useState('');
+  const [customAfterInput, setCustomAfterInput] = useState('');
 
   // Business Profile
   const [businessName, setBusinessName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [centreAddress, setCentreAddress] = useState('');
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiRequest<{ simplified: SimplifiedSettings }>('/api/settings');
+      const res = await apiRequest<{
+        simplified: SimplifiedSettings;
+        general?: { address?: string };
+      }>('/api/settings');
       const s = res.simplified;
       if (s) {
         setMessagesEnabled(s.messagesEnabled ?? true);
         setMaxMessages(s.maxMessagesPerCustomer ?? 3);
         setRemindDaysBefore(s.remindDaysBefore || [7, 3, 0]);
         setRemindDaysAfter(s.remindDaysAfter || [1, 3]);
-        setPucTemplate(s.pucMessageTemplate || '');
-        setInsTemplate(s.insuranceMessageTemplate || '');
         setBusinessName(s.businessName || '');
         setOwnerName(s.ownerName || '');
         setMobileNumber(s.mobileNumber || '');
       }
+      setCentreAddress(res.general?.address || '');
     } catch (err) {
       toast.error('Failed to load settings', {
         description: err instanceof Error ? err.message : 'Unknown error',
@@ -122,11 +112,28 @@ export function SettingsView() {
     );
   };
 
-  const insertPlaceholder = (
-    setter: React.Dispatch<React.SetStateAction<string>>,
-    token: string,
-  ) => {
-    setter((prev) => `${prev} ${token}`);
+  const addCustomBeforeDay = () => {
+    const num = parseInt(customBeforeInput, 10);
+    if (Number.isNaN(num) || num < 1 || num > 365) {
+      toast.error('Enter days between 1 and 365');
+      return;
+    }
+    setRemindDaysBefore((prev) =>
+      prev.includes(num) ? prev : [...prev, num].sort((a, b) => b - a),
+    );
+    setCustomBeforeInput('');
+  };
+
+  const addCustomAfterDay = () => {
+    const num = parseInt(customAfterInput, 10);
+    if (Number.isNaN(num) || num < 1 || num > 365) {
+      toast.error('Enter days between 1 and 365');
+      return;
+    }
+    setRemindDaysAfter((prev) =>
+      prev.includes(num) ? prev : [...prev, num].sort((a, b) => a - b),
+    );
+    setCustomAfterInput('');
   };
 
   const handleSave = async () => {
@@ -143,8 +150,6 @@ export function SettingsView() {
         callingWindowEnd: '19:30',
         remindDaysBefore,
         remindDaysAfter,
-        pucMessageTemplate: pucTemplate,
-        insuranceMessageTemplate: insTemplate,
         businessName: businessName.trim() || undefined,
         ownerName: ownerName.trim() || undefined,
         mobileNumber: mobileNumber.trim() || undefined,
@@ -185,7 +190,7 @@ export function SettingsView() {
             WhatsApp Automation Settings
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Configure automated WhatsApp reminder templates, delivery limits, and notification schedules.
+            Preview WhatsApp reminder templates and configure delivery limits and notification schedules.
           </p>
         </div>
         <Button
@@ -293,8 +298,9 @@ export function SettingsView() {
               {t('cadenceDesc')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-5 pt-0 space-y-3">
-            <div className="space-y-1.5">
+          <CardContent className="p-4 sm:p-5 pt-0 space-y-3.5">
+            {/* Days Before Expiry */}
+            <div className="space-y-2">
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
                 {t('daysBeforeExpiry')}
               </label>
@@ -316,10 +322,68 @@ export function SettingsView() {
                     </button>
                   );
                 })}
+                {remindDaysBefore
+                  .filter((d) => d > 0 && !AVAILABLE_DAYS_BEFORE.some((p) => p.value === d))
+                  .map((customDay) => (
+                    <button
+                      key={customDay}
+                      type="button"
+                      onClick={() => toggleDayBefore(customDay)}
+                      className="text-xs px-2.5 py-1 rounded-md font-medium bg-indigo-600 text-white inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                      title="Click to remove"
+                    >
+                      <span>{customDay}d Before</span>
+                      <X className="w-3 h-3" />
+                    </button>
+                  ))}
+              </div>
+              <div className="flex items-center gap-2 max-w-xs">
+                <Input
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={customBeforeInput}
+                  onChange={(e) => setCustomBeforeInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomBeforeDay();
+                    }
+                  }}
+                  placeholder="Custom days before (e.g. 10)"
+                  className="h-8 text-xs font-mono"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addCustomBeforeDay}
+                  className="h-8 px-2.5 text-xs gap-1 shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add
+                </Button>
               </div>
             </div>
 
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+            {/* On Expiry Day */}
+            <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+              <div>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                  On Expiry Day (0d)
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Send reminder on the exact certificate expiry date
+                </span>
+              </div>
+              <Switch
+                checked={remindDaysBefore.includes(0)}
+                onCheckedChange={() => toggleDayBefore(0)}
+              />
+            </div>
+
+            {/* Days After Expiry */}
+            <div className="space-y-2 pt-2.5 border-t border-slate-100 dark:border-slate-800">
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
                 {t('daysAfterExpiry')}
               </label>
@@ -341,153 +405,115 @@ export function SettingsView() {
                     </button>
                   );
                 })}
+                {remindDaysAfter
+                  .filter((d) => !AVAILABLE_DAYS_AFTER.some((p) => p.value === d))
+                  .map((customDay) => (
+                    <button
+                      key={customDay}
+                      type="button"
+                      onClick={() => toggleDayAfter(customDay)}
+                      className="text-xs px-2.5 py-1 rounded-md font-medium bg-amber-600 text-white inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                      title="Click to remove"
+                    >
+                      <span>{customDay}d Overdue</span>
+                      <X className="w-3 h-3" />
+                    </button>
+                  ))}
+              </div>
+              <div className="flex items-center gap-2 max-w-xs">
+                <Input
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={customAfterInput}
+                  onChange={(e) => setCustomAfterInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomAfterDay();
+                    }
+                  }}
+                  placeholder="Custom days after (e.g. 5)"
+                  className="h-8 text-xs font-mono"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addCustomAfterDay}
+                  className="h-8 px-2.5 text-xs gap-1 shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* SECTION 3: TEMPLATES & LIVE PREVIEW */}
+      {/* SECTION 3: TEMPLATE PREVIEWS */}
       <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
         <CardHeader className="p-4 sm:p-5 pb-3">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-slate-400" />
-            WhatsApp Message Templates
-          </CardTitle>
-          <CardDescription className="text-xs">
-            {t('templatesDesc')}
-          </CardDescription>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-slate-400" />
+                WhatsApp Message Template Preview
+              </CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                Read-only preview of the official Meta WhatsApp templates sent to vehicle owners.
+              </CardDescription>
+            </div>
+            <Badge variant="secondary" className="text-[11px] font-medium">
+              Meta Approved Templates
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-5 pt-0">
-          <Tabs defaultValue="puc">
-            <TabsList className="grid w-full grid-cols-2 max-w-xs h-8">
-              <TabsTrigger value="puc" className="text-xs py-1">PUC Certificate</TabsTrigger>
-              <TabsTrigger value="insurance" className="text-xs py-1">Insurance Policy</TabsTrigger>
-            </TabsList>
-
-            {/* PUC Template Tab */}
-            <TabsContent value="puc" className="space-y-4 pt-3">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                      Template Message
-                    </label>
-                    <span className="text-[11px] text-slate-400">Supports Markdown</span>
-                  </div>
-                  <Textarea
-                    rows={7}
-                    value={pucTemplate}
-                    onChange={(e) => setPucTemplate(e.target.value)}
-                    className="font-mono text-xs leading-relaxed"
-                    placeholder="Enter WhatsApp template text..."
-                  />
-
-                  {/* Insert Placeholder Pills */}
-                  <div>
-                    <span className="text-[11px] font-medium text-slate-500 block mb-1">
-                      Available dynamic tags (click to insert):
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {PLACEHOLDERS.map((token) => (
-                        <button
-                          key={token}
-                          type="button"
-                          onClick={() => insertPlaceholder(setPucTemplate, token)}
-                          className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-slate-400 cursor-pointer font-mono"
-                        >
-                          {token}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Live Preview */}
-                <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 text-slate-400" />
-                    Customer Message Preview
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* PUC Template Preview */}
+            <div className="space-y-2">
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-slate-400" />
+                PUC Renewal Reminder
+              </span>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 flex flex-col justify-end">
+                <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3.5 shadow-2xs">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                    PUC Renewal Reminder
+                  </p>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                    {`Hello Yash,\n\nYour vehicle's PUC certificate for GJ01AB1234 is expiring on 08/12/2027.\n\nPlease renew your PUC certificate before the expiry date to avoid penalties.\n\n🏢 PUC Centre: ${businessName || 'Patel PUC'}\n👤 Owner Name: ${ownerName || 'Yash'}\n📍 Address: ${centreAddress || 'Rajkot'}\n📞 Contact Number: ${mobileNumber || '1234567890'}\n\nThank you for choosing.`}
+                  </p>
+                  <span className="text-[9px] text-slate-400 float-right mt-1.5 font-mono">
+                    10:45 AM • Delivered
                   </span>
-                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 min-h-[180px] flex flex-col justify-end">
-                    <div className="max-w-[85%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3 shadow-2xs">
-                      <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
-                        {pucTemplate
-                          ? pucTemplate
-                              .replace(/\{customer_name\}/g, 'Rajesh Patel')
-                              .replace(/\{vehicle_number\}/g, 'GJ01AB1234')
-                              .replace(/\{puc_expiry_date\}/g, '28 Feb 2026')
-                              .replace(/\{center_name\}/g, businessName || 'Maruti PUC Center')
-                              .replace(/\{center_mobile\}/g, mobileNumber || '9876543210')
-                          : 'Sample message preview will appear here...'}
-                      </p>
-                      <span className="text-[9px] text-slate-400 float-right mt-1 font-mono">
-                        10:45 AM • Delivered
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
-            </TabsContent>
+            </div>
 
-            {/* Insurance Template Tab */}
-            <TabsContent value="insurance" className="space-y-4 pt-3">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                      Template Message
-                    </label>
-                  </div>
-                  <Textarea
-                    rows={7}
-                    value={insTemplate}
-                    onChange={(e) => setInsTemplate(e.target.value)}
-                    className="font-mono text-xs leading-relaxed"
-                  />
-                  <div>
-                    <span className="text-[11px] font-medium text-slate-500 block mb-1">
-                      Available dynamic tags (click to insert):
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {PLACEHOLDERS.map((token) => (
-                        <button
-                          key={token}
-                          type="button"
-                          onClick={() => insertPlaceholder(setInsTemplate, token)}
-                          className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hover:border-slate-400 cursor-pointer font-mono"
-                        >
-                          {token}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                    Customer Message Preview
+            {/* Insurance Template Preview */}
+            <div className="space-y-2">
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-slate-400" />
+                Vehicle Insurance Renewal Reminder
+              </span>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 flex flex-col justify-end">
+                <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3.5 shadow-2xs">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                    Vehicle Insurance Renewal Reminder
+                  </p>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                    {`Hello yash,\n\nYour vehicle GJ02GH1234 insurance policy is expiring on 12/08/2026.\n\n📄 Policy No.: 123\n🏢 Insurer: india\n\nRenew your policy on time to avoid a lapse in insurance coverage.\n\nFor Renewal Assistance:\n🏢 Centre: ${businessName || 'patel'}\n👤 Owner: ${ownerName || 'yash'}\n📞 Contact: ${mobileNumber || '1234526780'}\n\nThank you for your trust! 🙏`}
+                  </p>
+                  <span className="text-[9px] text-slate-400 float-right mt-1.5 font-mono">
+                    11:15 AM • Delivered
                   </span>
-                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 min-h-[180px] flex flex-col justify-end">
-                    <div className="max-w-[85%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3 shadow-2xs">
-                      <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
-                        {insTemplate
-                          ? insTemplate
-                              .replace(/\{customer_name\}/g, 'Rajesh Patel')
-                              .replace(/\{vehicle_number\}/g, 'GJ01AB1234')
-                              .replace(/\{center_name\}/g, businessName || 'Maruti PUC Center')
-                              .replace(/\{center_mobile\}/g, mobileNumber || '9876543210')
-                          : 'Insurance reminder preview...'}
-                      </p>
-                      <span className="text-[9px] text-slate-400 float-right mt-1 font-mono">
-                        11:15 AM • Delivered
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -300,33 +300,6 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
     }
   };
 
-  const [inlineLookupLoading, setInlineLookupLoading] = useState(false);
-
-  const handleInlinePlateLookup = async (plate: string) => {
-    const clean = plate.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    if (!clean || clean.length < 5) {
-      toast.error('Please enter a valid vehicle plate (e.g. GJ01AB1234)');
-      return;
-    }
-    setInlineLookupLoading(true);
-    try {
-      const res = await apiRequest<{ ok: boolean; data: ExtractedPucData & { source?: string } }>(
-        `/api/scanner/lookup-vehicle?regNumber=${encodeURIComponent(clean)}`,
-      );
-      if (res.ok && res.data) {
-        handleScanAutoFill(res.data);
-        toast.success(`Fetched details for ${res.data.regNumber}`, {
-          description: `${res.data.fullName || 'Customer'} • ${res.data.makeModel || ''}`,
-        });
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Lookup failed';
-      toast.error(msg);
-    } finally {
-      setInlineLookupLoading(false);
-    }
-  };
-
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -1103,7 +1076,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {editingCustomer
                     ? 'Update customer profile, PUC validity, and insurance renewal dates'
-                    : 'Auto-fill via plate or Parivahan PDF/image, or enter details manually'}
+                    : 'Upload a Parivahan PDF or certificate image to auto-fill, or enter details manually'}
                 </DialogDescription>
               </div>
             </div>
@@ -1225,8 +1198,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <Label htmlFor="veh-plate" className="text-xs font-semibold">
                       {t('vehiclePlate')} <span className="text-red-500">*</span>
                     </Label>
-                    <div className="flex gap-2">
-                      <div className="flex-1 flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent shadow-xs overflow-hidden">
+                      <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent shadow-xs overflow-hidden">
                         <span className="px-2 h-10 bg-[#003399] text-white text-[9px] font-black tracking-wider flex items-center justify-center select-none shrink-0">
                           IND
                         </span>
@@ -1239,23 +1211,6 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           required
                         />
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleInlinePlateLookup(regNumber)}
-                        disabled={inlineLookupLoading || !regNumber || regNumber.replace(/[^A-Za-z0-9]/g, '').length < 5}
-                        title="Auto-fetch vehicle specs from plate"
-                        className="h-10 px-3 text-xs font-semibold shrink-0 gap-1.5 border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/70 dark:hover:bg-indigo-950/50 cursor-pointer"
-                      >
-                        {inlineLookupLoading ? (
-                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Zap className="h-3.5 w-3.5" />
-                        )}
-                        Fetch
-                      </Button>
-                    </div>
                   </div>
 
                   <div className="space-y-1.5">
