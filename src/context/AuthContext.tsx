@@ -38,11 +38,14 @@ export interface RuntimeInfo {
 }
 
 interface AuthResponse {
-  token: string;
+  token?: string;
+  requiresVerification?: boolean;
+  email?: string;
+  message?: string;
   verificationToken?: string;
-  user: AuthUser;
-  tenant: AuthTenant;
-  runtime: RuntimeInfo;
+  user?: AuthUser;
+  tenant?: AuthTenant;
+  runtime?: RuntimeInfo;
 }
 
 interface AuthContextValue {
@@ -62,7 +65,8 @@ interface AuthContextValue {
     password: string;
     address?: string;
     preloadSampleData?: boolean;
-  }) => Promise<{ verificationToken?: string }>;
+  }) => Promise<{ verificationToken?: string; requiresVerification?: boolean; email?: string; message?: string }>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   applyTheme: (pref: ThemePreference, persist?: boolean) => Promise<void>;
@@ -142,8 +146,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         body: { email, password },
       });
-      setAuthToken(res.token);
-      hydrate(res);
+      if (res.token && res.user && res.tenant && res.runtime) {
+        setAuthToken(res.token);
+        hydrate({ user: res.user, tenant: res.tenant, runtime: res.runtime });
+      }
     },
     [hydrate],
   );
@@ -152,8 +158,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await apiRequest<AuthResponse>('/api/auth/demo-login', {
       method: 'POST',
     });
-    setAuthToken(res.token);
-    hydrate(res);
+    if (res.token && res.user && res.tenant && res.runtime) {
+      setAuthToken(res.token);
+      hydrate({ user: res.user, tenant: res.tenant, runtime: res.runtime });
+    }
   }, [hydrate]);
 
   const register = useCallback(
@@ -170,9 +178,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         body: payload,
       });
-      setAuthToken(res.token);
-      hydrate(res);
-      return { verificationToken: res.verificationToken };
+      if (!res.requiresVerification && res.token && res.user && res.tenant && res.runtime) {
+        setAuthToken(res.token);
+        hydrate({ user: res.user, tenant: res.tenant, runtime: res.runtime });
+      }
+      return {
+        verificationToken: res.verificationToken,
+        requiresVerification: Boolean(res.requiresVerification),
+        email: res.email,
+        message: res.message,
+      };
+    },
+    [hydrate],
+  );
+
+  const verifyEmail = useCallback(
+    async (email: string, code: string) => {
+      const res = await apiRequest<AuthResponse>('/api/auth/verify-email', {
+        method: 'POST',
+        body: { email, code },
+      });
+      if (res.token && res.user && res.tenant && res.runtime) {
+        setAuthToken(res.token);
+        hydrate({ user: res.user, tenant: res.tenant, runtime: res.runtime });
+      }
     },
     [hydrate],
   );
@@ -218,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         demoLogin,
         register,
+        verifyEmail,
         logout,
         refreshProfile,
         applyTheme,

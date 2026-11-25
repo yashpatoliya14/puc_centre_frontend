@@ -33,17 +33,19 @@ import { Badge } from '../ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Alert, AlertDescription } from '../ui/alert';
 
-type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
+type AuthMode = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
 export function AuthScreen() {
-  const { login, demoLogin, register, theme, applyTheme } = useAuth();
+  const { login, demoLogin, register, verifyEmail, theme, applyTheme } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
+  const [resendingCode, setResendingCode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Login inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
 
   // Register inputs
   const [businessName, setBusinessName] = useState('');
@@ -63,7 +65,14 @@ export function AuthScreen() {
       await login(email, password);
       toast.success('Signed in successfully');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Sign-in failed');
+      const msg = err instanceof Error ? err.message : 'Sign-in failed';
+      if (msg.toLowerCase().includes('verify your email')) {
+        toast.info(msg);
+        setVerifyCode('');
+        setMode('verify');
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +118,7 @@ export function AuthScreen() {
     }
     setLoading(true);
     try {
-      await register({
+      const res = await register({
         businessName,
         ownerName,
         mobileNumber,
@@ -118,7 +127,13 @@ export function AuthScreen() {
         address,
         preloadSampleData,
       });
-      toast.success('PUC centre account created successfully!');
+      if (res.requiresVerification) {
+        toast.success(res.message || 'Verification code sent to your email!');
+        setVerifyCode('');
+        setMode('verify');
+      } else {
+        toast.success('PUC centre account created successfully!');
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -126,19 +141,56 @@ export function AuthScreen() {
     }
   };
 
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verifyCode.trim()) {
+      toast.error('Please enter the verification code from your email');
+      return;
+    }
+    setLoading(true);
+    try {
+      await verifyEmail(email, verifyCode.trim());
+      toast.success('Email verified! Launching your PUC dashboard...');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Verification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email.trim()) {
+      toast.error('Enter your registered email address first');
+      return;
+    }
+    setResendingCode(true);
+    try {
+      const res = await apiRequest<{ message: string; alreadyVerified?: boolean }>('/api/auth/resend-verification', {
+        method: 'POST',
+        body: { email },
+      });
+      toast.success(res.message);
+      if (res.alreadyVerified) {
+        setMode('login');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not resend verification code');
+    } finally {
+      setResendingCode(false);
+    }
+  };
+
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await apiRequest<{ message: string; previewResetToken?: string }>(
+      const res = await apiRequest<{ message: string; emailSent?: boolean; previewResetToken?: string }>(
         '/api/auth/forgot-password',
         { method: 'POST', body: { email } },
       );
       toast.success(res.message);
-      if (res.previewResetToken) {
-        setResetToken(res.previewResetToken);
-        setMode('reset');
-      }
+      setResetToken(res.previewResetToken || '');
+      setMode('reset');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Password reset request failed');
     } finally {
@@ -158,7 +210,7 @@ export function AuthScreen() {
     try {
       const res = await apiRequest<{ message: string }>('/api/auth/reset-password', {
         method: 'POST',
-        body: { token: resetToken, newPassword },
+        body: { email: email.trim().toLowerCase() || undefined, token: resetToken.trim(), newPassword },
       });
       toast.success(res.message);
       setMode('login');
@@ -286,14 +338,16 @@ export function AuthScreen() {
                   <CardTitle className="text-xl font-bold">
                     {mode === 'login' && 'Sign In to Your Center'}
                     {mode === 'register' && 'Register New PUC Center'}
+                    {mode === 'verify' && 'Verify Your Email'}
                     {mode === 'forgot' && 'Reset Password'}
                     {mode === 'reset' && 'Set New Password'}
                   </CardTitle>
                   <CardDescription className="text-xs mt-1">
-                    {mode === 'login' && 'Enter your credentials to access vehicle records and voice automations.'}
-                    {mode === 'register' && 'Set up your testing centre profile and start automated voice reminders.'}
-                    {mode === 'forgot' && 'Enter your registered email to receive password recovery token.'}
-                    {mode === 'reset' && 'Enter the reset token sent to your email with your new password.'}
+                    {mode === 'login' && 'Enter your credentials to access vehicle records and automations.'}
+                    {mode === 'register' && 'Set up your testing centre profile and verify your owner email.'}
+                    {mode === 'verify' && `Enter the 6-digit verification code sent to ${email || 'your email'}.`}
+                    {mode === 'forgot' && 'Enter your registered email to receive a 6-digit reset code.'}
+                    {mode === 'reset' && 'Enter the 6-digit reset code sent to your email with your new password.'}
                   </CardDescription>
                 </div>
               </div>
@@ -514,6 +568,57 @@ export function AuthScreen() {
                 </form>
               )}
 
+              {/* VERIFY EMAIL FORM (First-time PUC Owner) */}
+              {mode === 'verify' && (
+                <form onSubmit={handleVerifyEmail} className="space-y-4">
+                  <Alert variant="info" className="py-2.5">
+                    <AlertDescription>
+                      We sent a 6-digit verification code via email to <strong>{email}</strong>. Enter it below to activate your PUC centre account.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="verify-code">6-Digit Verification Code</Label>
+                    <Input
+                      id="verify-code"
+                      value={verifyCode}
+                      onChange={(e) => setVerifyCode(e.target.value)}
+                      placeholder="Enter 6-digit code"
+                      className="font-mono text-center text-lg tracking-widest"
+                      maxLength={32}
+                      required
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleResendVerification}
+                      disabled={resendingCode}
+                      className="w-2/5 cursor-pointer"
+                    >
+                      {resendingCode ? 'Sending...' : 'Resend Code'}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-3/5 font-bold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+                    >
+                      {loading ? 'Verifying...' : 'Verify & Launch Dashboard'}
+                    </Button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="text-xs text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 underline block mx-auto cursor-pointer"
+                  >
+                    Back to Sign In
+                  </button>
+                </form>
+              )}
+
               {/* FORGOT PASSWORD FORM */}
               {mode === 'forgot' && (
                 <form onSubmit={handleForgot} className="space-y-4">
@@ -558,17 +663,17 @@ export function AuthScreen() {
                 <form onSubmit={handleReset} className="space-y-4">
                   <Alert variant="info" className="py-2.5">
                     <AlertDescription>
-                      Verification token loaded. Set your new security password below.
+                      Check <strong>{email || 'your inbox'}</strong> for the 6-digit password reset code and enter your new strong password below.
                     </AlertDescription>
                   </Alert>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="reset-token">Reset Token</Label>
+                    <Label htmlFor="reset-token">Reset Code</Label>
                     <Input
                       id="reset-token"
                       value={resetToken}
                       onChange={(e) => setResetToken(e.target.value)}
-                      placeholder="Paste reset token"
+                      placeholder="Enter 6-digit code from email"
                       className="font-mono text-xs"
                       required
                     />
