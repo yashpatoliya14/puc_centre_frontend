@@ -158,6 +158,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
   // Customer modal state (Create / Edit)
   const [modalOpen, setModalOpen] = useState(false);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<CustomerItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -560,11 +561,11 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             type="button"
             variant="outline"
             size="sm"
-            onClick={openCreateModal}
+            onClick={() => setBulkModalOpen(true)}
             className="h-9 gap-1.5 font-semibold text-xs border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 cursor-pointer"
           >
-            <QrCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Scan / Auto-Fill</span>
+            <FileText className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Bulk Upload (PDF / Image)</span>
           </Button>
 
           <Button
@@ -1092,7 +1093,13 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
             {/* 1-Click Fast Auto-Fill (Scan QR, Upload Parivahan PDF, Photo & WhatsApp) */}
             {!editingCustomer && (
-              <PucScannerPanel onExtracted={handleScanAutoFill} />
+              <PucScannerPanel
+                onExtracted={handleScanAutoFill}
+                onBulkComplete={() => {
+                  setModalOpen(false);
+                  loadData();
+                }}
+              />
             )}
 
             {/* SECTION 1: Customer Profile */}
@@ -1366,6 +1373,43 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 5B. DEDICATED BULK REGISTRATION DIALOG (PDF & IMAGE) */}
+      <Dialog open={bulkModalOpen} onOpenChange={setBulkModalOpen}>
+        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[92vh] overflow-y-auto p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <FileText className="h-4 w-4" />
+              </div>
+              <div>
+                <DialogTitle className="text-base sm:text-lg font-bold">
+                  Bulk Register Customers (PDF & Images)
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  Select or drop multiple Parivahan PDF certificates or images at once. The system will auto-extract customer names, vehicle numbers, fuel types, and expiry dates, then register all customers in 1 click.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="py-2">
+            <PucScannerPanel
+              initialTab="upload"
+              hideTabs={true}
+              onBulkComplete={() => {
+                setBulkModalOpen(false);
+                loadData();
+              }}
+              onExtracted={(extracted) => {
+                setBulkModalOpen(false);
+                openCreateModal();
+                handleScanAutoFill(extracted);
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 

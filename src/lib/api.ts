@@ -1,4 +1,13 @@
 const STORAGE_KEY = 'pucflow_token';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
+function resolveUrl(endpoint: string): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return API_BASE_URL ? `${API_BASE_URL}${normalizedEndpoint}` : normalizedEndpoint;
+}
 
 let inMemoryAuthToken: string | null =
   typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
@@ -52,7 +61,7 @@ export async function apiRequest<T = unknown>(
     headers['Content-Type'] = 'application/json';
   }
 
-  const res = await fetch(endpoint, {
+  const res = await fetch(resolveUrl(endpoint), {
     method: options.method || 'GET',
     headers,
     body:
@@ -93,7 +102,7 @@ export async function downloadAuthenticatedCsv(endpoint: string, filename: strin
   if (inMemoryAuthToken) {
     headers['Authorization'] = `Bearer ${inMemoryAuthToken}`;
   }
-  const res = await fetch(endpoint, { headers });
+  const res = await fetch(resolveUrl(endpoint), { headers });
   if (!res.ok) {
     throw new ApiError('Failed to export CSV file', res.status);
   }
