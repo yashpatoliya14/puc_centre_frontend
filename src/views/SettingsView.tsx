@@ -65,8 +65,7 @@ export function SettingsView() {
 
   // WhatsApp Messaging Master Switch
   const [messagesEnabled, setMessagesEnabled] = useState(true);
-  const [maxMessages, setMaxMessages] = useState(3);
-  const [dailyLimit, setDailyLimit] = useState(100);
+  const [dailyLimitInput, setDailyLimitInput] = useState('100');
   const [frequencyCount, setFrequencyCount] = useState(1);
   const [deliveryTimes, setDeliveryTimes] = useState<string[]>(['10:00']);
 
@@ -92,8 +91,7 @@ export function SettingsView() {
       const s = res.simplified;
       if (s) {
         setMessagesEnabled(s.messagesEnabled ?? true);
-        setMaxMessages(s.maxMessagesPerCustomer ?? 3);
-        setDailyLimit(s.dailyMessageLimit ?? 100);
+        setDailyLimitInput(String(s.dailyMessageLimit ?? 100));
         const count = Math.min(12, Math.max(1, s.deliveryFrequencyCount ?? 1));
         setFrequencyCount(count);
         const loadedTimes = Array.isArray(s.deliveryTimes) && s.deliveryTimes.length > 0
@@ -178,8 +176,12 @@ export function SettingsView() {
   };
 
   const handleSave = async () => {
-    const safeDailyLimit = Math.min(10000, Math.max(1, Number(dailyLimit) || 100));
-    const safeMaxMessages = Math.min(20, Math.max(1, Number(maxMessages) || 3));
+    const parsedDaily = parseInt(dailyLimitInput, 10);
+    if (Number.isNaN(parsedDaily) || parsedDaily < 1 || parsedDaily > 10000) {
+      toast.error('Please enter a Daily Delivery Limit between 1 and 10000');
+      return;
+    }
+    const safeDailyLimit = parsedDaily;
     const safeFreqCount = Math.min(12, Math.max(1, Number(frequencyCount) || 1));
     const safeTimes = Array.from(
       { length: safeFreqCount },
@@ -194,7 +196,7 @@ export function SettingsView() {
         messagesEnabled,
         maxCallsPerCustomer: 1,
         retryIntervalMinutes: 60,
-        maxMessagesPerCustomer: safeMaxMessages,
+        maxMessagesPerCustomer: 3,
         dailyMessageLimit: safeDailyLimit,
         deliveryFrequency: `${safeFreqCount}x_daily`,
         deliveryFrequencyCount: safeFreqCount,
@@ -244,7 +246,7 @@ export function SettingsView() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-slate-800">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs">
+          <div className="h-10 w-10 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shrink-0 shadow-xs">
             <Sliders className="w-5 h-5" />
           </div>
           <div>
@@ -261,7 +263,7 @@ export function SettingsView() {
           onClick={handleSave}
           disabled={saving}
           size="sm"
-          className="h-9 px-4 gap-1.5 font-semibold text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-xs cursor-pointer self-start sm:self-auto"
+          className="h-9 px-4 gap-1.5 font-semibold text-xs bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 shadow-xs cursor-pointer self-start sm:self-auto"
         >
           <Save className="w-3.5 h-3.5" />
           {saving ? t('saving') : 'Save Settings'}
@@ -305,13 +307,13 @@ export function SettingsView() {
 
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-between lg:justify-end">
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-600 dark:text-slate-300">
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 font-mono">
-                {dailyLimit}/day
+              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 font-mono">
+                {dailyLimitInput || '0'}/day
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 font-mono">
+              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 font-mono">
                 {frequencyCount} {frequencyCount === 1 ? 'time' : 'times'}/day
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
+              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700">
                 {totalSchedulePoints} schedule rules
               </span>
             </div>
@@ -339,44 +341,39 @@ export function SettingsView() {
               Delivery Limit & Frequency
             </CardTitle>
             <CardDescription className="text-xs">
-              Control daily message volume, dispatch pacing, and per-customer caps.
+              Control daily message volume and reminder dispatch times.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-5 space-y-5 flex-1">
             {/* Daily Limit */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  Daily Delivery Limit
-                </label>
-                <Badge variant="outline" className="font-mono text-[11px]">
-                  {dailyLimit || 0}/day
-                </Badge>
-              </div>
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3.5 space-y-2">
+              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                Daily Delivery Limit
+              </label>
 
               <Input
                 type="number"
                 min={1}
                 max={10000}
-                value={dailyLimit}
-                onChange={(e) => setDailyLimit(Number(e.target.value))}
-                placeholder="Enter daily message limit"
+                value={dailyLimitInput}
+                onChange={(e) => setDailyLimitInput(e.target.value)}
+                placeholder="Enter daily message limit (e.g. 100)"
                 className="font-mono text-xs h-9 bg-white dark:bg-slate-950"
               />
-              <span className="text-[11px] text-slate-400 block">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                 Maximum WhatsApp reminders dispatched across your PUC centre per day.
               </span>
             </div>
 
             {/* Delivery Frequency + Customer Clock Time Slots */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-3">
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3.5 space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                    <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
+                    <CalendarClock className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
                     Delivery Frequency
                   </label>
-                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
                     Set how many times per day to send reminders and pick each time from the clock.
                   </span>
                 </div>
@@ -432,27 +429,6 @@ export function SettingsView() {
                 ))}
               </div>
             </div>
-
-            {/* Max Messages Per Customer */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t('maxMessagesPerCustomer')}
-                </label>
-                <span className="text-[11px] font-mono text-slate-400">1–20 / cert</span>
-              </div>
-              <Input
-                type="number"
-                min={1}
-                max={20}
-                value={maxMessages}
-                onChange={(e) => setMaxMessages(Number(e.target.value))}
-                className="font-mono text-xs h-9"
-              />
-              <span className="text-[11px] text-slate-400 block">
-                Standard: 3 reminders per certificate (Pre-expiry, Expiry day, and Overdue).
-              </span>
-            </div>
           </CardContent>
         </Card>
 
@@ -483,8 +459,8 @@ export function SettingsView() {
                       onClick={() => toggleDayBefore(item.value)}
                       className={`text-xs px-2.5 py-1 rounded-md font-medium border transition-colors cursor-pointer ${
                         selected
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-2xs'
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white border-transparent shadow-2xs'
+                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
                       {item.label}

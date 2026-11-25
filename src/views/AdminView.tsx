@@ -13,6 +13,9 @@ import {
   MapPin,
   Car,
   Eye,
+  UserPlus,
+  KeyRound,
+  AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiRequest } from '../lib/api';
@@ -89,6 +92,15 @@ interface OwnerCustomersResponse {
   items: OwnerCustomer[];
 }
 
+interface AdminAccount {
+  id: string;
+  email: string;
+  fullName: string;
+  mobileNumber: string;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
 export function AdminView() {
   const [owners, setOwners] = useState<OwnerSummary[]>([]);
   const [summary, setSummary] = useState({
@@ -98,9 +110,19 @@ export function AdminView() {
     totalCustomers: 0,
   });
   const [loadingOwners, setLoadingOwners] = useState(true);
+  const [ownersError, setOwnersError] = useState<string | null>(null);
   const [ownerSearch, setOwnerSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked'>('all');
   const [togglingOwnerId, setTogglingOwnerId] = useState<string | null>(null);
+
+  // Admin accounts & creation
+  const [admins, setAdmins] = useState<AdminAccount[]>([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(true);
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+  const [adminFullName, setAdminFullName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminMobile, setAdminMobile] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
 
   // Selected owner for owner-wise customer display
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
@@ -111,6 +133,7 @@ export function AdminView() {
 
   const loadOwners = useCallback(async () => {
     setLoadingOwners(true);
+    setOwnersError(null);
     try {
       const res = await apiRequest<OwnersResponse>('/api/admin/owners');
       setOwners(res.items || []);
@@ -120,11 +143,27 @@ export function AdminView() {
         return res.items[0]?.id || '';
       });
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch owner details';
+      setOwnersError(msg);
       toast.error('Failed to load PUC centre owners', {
-        description: err instanceof Error ? err.message : 'Unknown error',
+        description: msg,
       });
     } finally {
       setLoadingOwners(false);
+    }
+  }, []);
+
+  const loadAdmins = useCallback(async () => {
+    setLoadingAdmins(true);
+    try {
+      const res = await apiRequest<{ items: AdminAccount[] }>('/api/admin/admins');
+      setAdmins(res.items || []);
+    } catch (err) {
+      toast.error('Failed to load admin accounts', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      });
+    } finally {
+      setLoadingAdmins(false);
     }
   }, []);
 
@@ -152,7 +191,66 @@ export function AdminView() {
 
   useEffect(() => {
     loadOwners();
-  }, [loadOwners]);
+    loadAdmins();
+  }, [loadOwners, loadAdmins]);
+
+  const generateStrongPassword = () => {
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const symbols = '@#$!%&*';
+    const all = upper + lower + digits + symbols;
+    const pick = (pool: string) => pool[Math.floor(Math.random() * pool.length)];
+    const chars = [pick(upper), pick(lower), pick(digits), pick(symbols)];
+    for (let i = 0; i < 8; i++) chars.push(pick(all));
+    setAdminPassword(chars.sort(() => Math.random() - 0.5).join(''));
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailTrim = adminEmail.trim().toLowerCase();
+    const atIdx = emailTrim.indexOf('@');
+    if (atIdx < 4 || !/^[a-z0-9._+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(emailTrim)) {
+      toast.error('Admin ID (Email) must be a valid email with at least 4 characters before @');
+      return;
+    }
+    if (
+      adminPassword.length < 10 ||
+      !/[A-Z]/.test(adminPassword) ||
+      !/[a-z]/.test(adminPassword) ||
+      !/[0-9]/.test(adminPassword) ||
+      !/[^A-Za-z0-9]/.test(adminPassword)
+    ) {
+      toast.error(
+        'Strong password required: min 10 chars with uppercase, lowercase, number, and special character',
+      );
+      return;
+    }
+    setCreatingAdmin(true);
+    try {
+      await apiRequest('/api/admin/admins', {
+        method: 'POST',
+        body: {
+          fullName: adminFullName.trim(),
+          email: emailTrim,
+          mobileNumber: adminMobile.trim(),
+          password: adminPassword,
+        },
+      });
+      toast.success(`Admin ${adminFullName.trim()} created!`);
+      setAdminFullName('');
+      setAdminEmail('');
+      setAdminMobile('');
+      setAdminPassword('');
+      await loadAdmins();
+    } catch (err) {
+      toast.error('Failed to create admin', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      });
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedOwnerId) {
@@ -248,15 +346,36 @@ export function AdminView() {
           size="sm"
           onClick={() => {
             loadOwners();
+            loadAdmins();
             if (selectedOwnerId) loadOwnerCustomers(selectedOwnerId);
           }}
-          disabled={loadingOwners}
+          disabled={loadingOwners || loadingAdmins}
           className="h-9 gap-1.5 text-xs font-semibold cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loadingOwners ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${loadingOwners || loadingAdmins ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
+
+      {ownersError && (
+        <div className="rounded-lg border border-red-200 dark:border-red-900/70 bg-red-50/90 dark:bg-red-950/40 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5 text-xs text-red-700 dark:text-red-300">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Unable to fetch owner &amp; centre details</p>
+              <p className="opacity-90 mt-0.5">{ownersError}</p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={loadOwners}
+            className="h-8 text-xs bg-red-600 hover:bg-red-700 text-white shrink-0 cursor-pointer"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -606,8 +725,124 @@ export function AdminView() {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                        <span className="text-xs text-slate-400">—</span>
                         )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 3: ADMIN ACCOUNTS & CREATE ANOTHER ADMIN */}
+      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <CardHeader className="p-4 sm:p-5 pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            Admin Accounts ({admins.length})
+          </CardTitle>
+          <CardDescription className="text-xs mt-0.5">
+            Create additional admins with a strong Admin ID (min 4 characters before @) and strong password (min 10 chars, upper, lower, digit, symbol).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-5 pt-2 space-y-5">
+          <form onSubmit={handleCreateAdmin} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50">
+            <Input
+              placeholder="Full Name *"
+              value={adminFullName}
+              onChange={(e) => setAdminFullName(e.target.value)}
+              className="h-9 text-xs bg-white dark:bg-slate-950"
+              required
+            />
+            <Input
+              type="email"
+              placeholder="Strong Admin ID (email) *"
+              value={adminEmail}
+              onChange={(e) => setAdminEmail(e.target.value)}
+              className="h-9 text-xs bg-white dark:bg-slate-950"
+              required
+            />
+            <Input
+              placeholder="Mobile (10 digits) *"
+              value={adminMobile}
+              onChange={(e) => setAdminMobile(e.target.value)}
+              className="h-9 text-xs bg-white dark:bg-slate-950"
+              required
+            />
+            <div className="flex gap-1.5">
+              <Input
+                type="text"
+                placeholder="Strong Password *"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                className="h-9 text-xs bg-white dark:bg-slate-950 font-mono"
+                required
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={generateStrongPassword}
+                title="Generate Strong Password"
+                className="h-9 px-2.5 shrink-0 cursor-pointer"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <Button
+              type="submit"
+              disabled={creatingAdmin}
+              className="h-9 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-600 gap-1.5 cursor-pointer"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              {creatingAdmin ? 'Creating...' : 'Create Admin'}
+            </Button>
+          </form>
+
+          <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/70 dark:bg-slate-900/60">
+                  <TableHead className="text-[11px]">Admin Name</TableHead>
+                  <TableHead className="text-[11px]">Admin ID (Email)</TableHead>
+                  <TableHead className="text-[11px]">Mobile</TableHead>
+                  <TableHead className="text-[11px]">Created</TableHead>
+                  <TableHead className="text-[11px]">Last Login</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loadingAdmins ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-6 text-xs text-slate-400">
+                      Loading admins...
+                    </TableCell>
+                  </TableRow>
+                ) : admins.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-6 text-xs text-slate-400">
+                      No additional admins found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  admins.map((a) => (
+                    <TableRow key={a.id}>
+                      <TableCell className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                        {a.fullName}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-slate-600 dark:text-slate-300">
+                        {a.email}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-slate-600 dark:text-slate-300">
+                        {a.mobileNumber}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500">
+                        {a.createdAt ? a.createdAt.slice(0, 10) : '—'}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500">
+                        {a.lastLoginAt ? a.lastLoginAt.slice(0, 16).replace('T', ' ') : 'Never'}
                       </TableCell>
                     </TableRow>
                   ))

@@ -81,8 +81,32 @@ export function AuthScreen() {
     }
   };
 
+  const isStrongId = (val: string) => {
+    const trimmed = val.trim().toLowerCase();
+    const atIdx = trimmed.indexOf('@');
+    if (atIdx < 4) return false;
+    return /^[a-z0-9._+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(trimmed);
+  };
+
+  const isStrongPass = (val: string) =>
+    val.length >= 10 &&
+    /[A-Z]/.test(val) &&
+    /[a-z]/.test(val) &&
+    /[0-9]/.test(val) &&
+    /[^A-Za-z0-9]/.test(val);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isStrongId(email)) {
+      toast.error('Owner ID (Email) must be a valid email with at least 4 characters before @');
+      return;
+    }
+    if (!isStrongPass(password)) {
+      toast.error(
+        'Strong password required: min 10 chars with uppercase, lowercase, number, and special character',
+      );
+      return;
+    }
     setLoading(true);
     try {
       await register({
@@ -124,6 +148,12 @@ export function AuthScreen() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isStrongPass(newPassword)) {
+      toast.error(
+        'Strong password required: min 10 chars with uppercase, lowercase, number, and special character',
+      );
+      return;
+    }
     setLoading(true);
     try {
       const res = await apiRequest<{ message: string }>('/api/auth/reset-password', {
@@ -401,7 +431,7 @@ export function AuthScreen() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="reg-email">Email Address *</Label>
+                      <Label htmlFor="reg-email">Strong Owner ID (Email) *</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
@@ -409,16 +439,17 @@ export function AuthScreen() {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="owner@example.com"
+                          placeholder="centre.owner@example.com"
                           className="pl-9"
                           required
                         />
                       </div>
+                      <p className="text-[11px] text-slate-500">Min 4 characters before @</p>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="reg-password">Password (min 8 chars) *</Label>
+                    <Label htmlFor="reg-password">Strong Password (min 10 chars) *</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
@@ -426,10 +457,10 @@ export function AuthScreen() {
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder="Upper, lower, number & symbol"
                         className="pl-9 pr-10"
                         required
-                        minLength={8}
+                        minLength={10}
                       />
                       <button
                         type="button"
@@ -544,15 +575,15 @@ export function AuthScreen() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="new-password">New Password</Label>
+                    <Label htmlFor="new-password">New Strong Password (min 10 chars)</Label>
                     <Input
                       id="new-password"
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimum 8 characters"
+                      placeholder="Upper, lower, number & symbol"
                       required
-                      minLength={8}
+                      minLength={10}
                     />
                   </div>
 

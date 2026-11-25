@@ -17,13 +17,13 @@
 }
 
 .dark {
-  --background: #0b0d12;
+  --background: #090d16;
   --foreground: #f1f5f9;
-  --surface: #11141c;
-  --card: #11141c;
-  --card-foreground: #f1f5f9;
-  --border: #1f2430;
-  --muted: #171b26;
+  --surface: #111827;
+  --card: #111827;
+  --card-foreground: #f8fafc;
+  --border: #1e293b;
+  --muted: #1e293b;
   --muted-foreground: #94a3b8;
   --primary: #6366f1;
   --primary-foreground: #ffffff;
@@ -48,8 +48,8 @@
   }
 
   html.dark {
-    background-color: #0b0d12;
-    color: #f1f5f9;
+    background-color: #090d16;
+    color: #f8fafc;
   }
 
   body {
@@ -60,8 +60,8 @@
 
   html.dark body,
   body.dark {
-    background-color: #0b0d12;
-    color: #f1f5f9;
+    background-color: #090d16;
+    color: #f8fafc;
     letter-spacing: 0.005em;
   }
 

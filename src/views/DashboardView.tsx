@@ -62,6 +62,14 @@ export interface CustomerItem {
   mobileNumber: string;
   language: string;
   remindersEnabled: boolean;
+  vehicleRegistrationNumber?: string;
+  vehicleType?: string;
+  fuelType?: string;
+  certificateNumber?: string | null;
+  issueDate?: string;
+  expiryDate?: string;
+  certificateStatus?: 'active' | 'expiring_soon' | 'expired' | 'expiring_today' | 'renewed';
+  daysUntilExpiry?: number;
   vehicle: {
     id: string;
     registrationNumber: string;
@@ -74,7 +82,7 @@ export interface CustomerItem {
     certificateNumber: string | null;
     issueDate: string;
     expiryDate: string;
-    status: 'active' | 'expiring_soon' | 'expired';
+    status: 'active' | 'expiring_soon' | 'expired' | 'expiring_today' | 'renewed';
     daysUntilExpiry: number;
   } | null;
   insurance: {
@@ -88,6 +96,16 @@ export interface CustomerItem {
     daysUntilExpiry: number | null;
     status: 'active' | 'expiring_soon' | 'expired';
   } | null;
+}
+
+function normalizeFormVehicleType(raw?: string | null): string {
+  if (!raw) return '2-Wheeler';
+  const v = raw.toLowerCase();
+  if (v === '2w' || v.includes('2-wheeler') || v.includes('two')) return '2-Wheeler';
+  if (v === '4w' || v.includes('4-wheeler') || v.includes('four')) return '4-Wheeler';
+  if (v === 'lcv' || v === 'hcv' || v.includes('commercial')) return 'Commercial';
+  if (v === '3w' || v.includes('other')) return 'Other';
+  return raw;
 }
 
 interface SettingsSummary {
@@ -197,7 +215,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
     setLoading(true);
     try {
       const [custList, settRes] = await Promise.all([
-        apiRequest<{ items: CustomerItem[] }>('/api/customers?limit=250'),
+        apiRequest<{ items: CustomerItem[] }>('/api/customers?pageSize=250'),
         apiRequest<{ simplified?: SettingsSummary }>('/api/settings').catch(() => null),
       ]);
       setCustomers(custList.items || []);
@@ -241,16 +259,19 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
   const openEditModal = (c: CustomerItem) => {
     setEditingCustomer(c);
-    setFullName(c.fullName);
-    setMobileNumber(c.mobileNumber);
+    setFullName(c.fullName || '');
+    const digitsOnly = (c.mobileNumber || '').replace(/\D/g, '');
+    setMobileNumber(digitsOnly.length >= 10 ? digitsOnly.slice(-10) : (c.mobileNumber || ''));
     setLanguage((c.language as 'gu' | 'hi' | 'en') || 'gu');
-    setRegNumber(c.vehicle?.registrationNumber || '');
-    setVehicleType(c.vehicle?.vehicleType || '2-Wheeler');
-    setFuelType(c.vehicle?.fuelType || 'Petrol');
+    setRegNumber(c.vehicle?.registrationNumber || c.vehicleRegistrationNumber || '');
+    setVehicleType(normalizeFormVehicleType(c.vehicle?.vehicleType || c.vehicleType));
+    setFuelType(c.vehicle?.fuelType || c.fuelType || 'Petrol');
     setMakeModel(c.vehicle?.makeModel || '');
-    setIssueDate(c.certificate?.issueDate ? c.certificate.issueDate.slice(0, 10) : todayIsoDate());
-    setExpiryDate(c.certificate?.expiryDate ? c.certificate.expiryDate.slice(0, 10) : addDaysIsoDate(todayIsoDate(), 180));
-    setCertNumber(c.certificate?.certificateNumber || '');
+    const iss = c.certificate?.issueDate || c.issueDate;
+    const exp = c.certificate?.expiryDate || c.expiryDate;
+    setIssueDate(iss ? iss.slice(0, 10) : todayIsoDate());
+    setExpiryDate(exp ? exp.slice(0, 10) : addDaysIsoDate(todayIsoDate(), 180));
+    setCertNumber(c.certificate?.certificateNumber || c.certificateNumber || '');
 
     if (c.insurance && c.insurance.policyNumber) {
       setHasInsurance(true);
@@ -463,10 +484,15 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   const filteredCustomers = useMemo(() => {
     let list = customers;
 
+    const getCertStatus = (c: CustomerItem) => c.certificate?.status || c.certificateStatus;
+
     if (activeFilter === 'expiring') {
-      list = list.filter((c) => c.certificate?.status === 'expiring_soon');
+      list = list.filter((c) => {
+        const st = getCertStatus(c);
+        return st === 'expiring_soon' || st === 'expiring_today';
+      });
     } else if (activeFilter === 'expired') {
-      list = list.filter((c) => c.certificate?.status === 'expired');
+      list = list.filter((c) => getCertStatus(c) === 'expired');
     } else if (activeFilter === 'insured') {
       list = list.filter((c) => Boolean(c.insurance && c.insurance.policyNumber));
     }
@@ -477,7 +503,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         (c) =>
           c.fullName.toLowerCase().includes(q) ||
           c.mobileNumber.includes(q) ||
-          (c.vehicle?.registrationNumber && c.vehicle.registrationNumber.toLowerCase().includes(q)) ||
+          ((c.vehicle?.registrationNumber || c.vehicleRegistrationNumber || '').toLowerCase().includes(q)) ||
           (c.insurance?.policyNumber && c.insurance.policyNumber.toLowerCase().includes(q)) ||
           (c.insurance?.insuranceCompany && c.insurance.insuranceCompany.toLowerCase().includes(q)),
       );
@@ -489,9 +515,13 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   // Statistics
   const stats = useMemo(() => {
     const total = customers.length;
-    const pucExpiring = customers.filter((c) => c.certificate?.status === 'expiring_soon').length;
+    const getCertStatus = (c: CustomerItem) => c.certificate?.status || c.certificateStatus;
+    const pucExpiring = customers.filter((c) => {
+      const st = getCertStatus(c);
+      return st === 'expiring_soon' || st === 'expiring_today';
+    }).length;
     const insExpiring = customers.filter((c) => c.insurance?.status === 'expiring_soon').length;
-    const expiredCount = customers.filter((c) => c.certificate?.status === 'expired').length;
+    const expiredCount = customers.filter((c) => getCertStatus(c) === 'expired').length;
     const insuredTotal = customers.filter((c) => Boolean(c.insurance && c.insurance.policyNumber)).length;
     return { total, pucExpiring, insExpiring, expiredCount, insuredTotal };
   }, [customers]);
@@ -556,7 +586,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
           <Button
             onClick={openCreateModal}
             size="sm"
-            className="h-9 gap-1.5 font-semibold text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-xs cursor-pointer"
+            className="h-9 gap-1.5 font-semibold text-xs bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             {t('registerCustomer')}
@@ -671,8 +701,8 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'all'
-                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
-                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white shadow-2xs'
+                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             {t('filterAll')} ({customers.length})
@@ -1151,34 +1181,6 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     </div>
                   </div>
                 </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">{t('preferredLanguage')}</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { code: 'gu' as const, label: 'Gujarati', native: 'ગુજરાતી' },
-                      { code: 'hi' as const, label: 'Hindi', native: 'हिंदी' },
-                      { code: 'en' as const, label: 'English', native: 'ENG' },
-                    ].map((lang) => {
-                      const active = language === lang.code;
-                      return (
-                        <button
-                          key={lang.code}
-                          type="button"
-                          onClick={() => setLanguage(lang.code)}
-                          className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-                            active
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-indigo-300 shadow-2xs'
-                              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
-                          }`}
-                        >
-                          <span>{lang.label}</span>
-                          <span className="text-[10px] opacity-75">({lang.native})</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
 
               {/* SECTION 2: Vehicle & PUC Certificate */}
@@ -1498,7 +1500,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                   type="submit"
                   size="sm"
                   disabled={submitting}
-                  className="h-9 px-5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 gap-1.5 shadow-xs cursor-pointer"
+                  className="h-9 px-5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 gap-1.5 shadow-xs cursor-pointer"
                 >
                   {submitting ? (
                     <>
