@@ -33,11 +33,8 @@ jobs:
             npm install --no-audit --no-fund
             npm run build
 
-            if pm2 describe puc-frontend > /dev/null 2>&1; then
-              pm2 restart puc-frontend
-            else
-              pm2 serve /var/www/puc_centre_frontend/dist 3001 --name puc-frontend --spa
-            fi
+            pm2 delete puc-frontend > /dev/null 2>&1 || true
+            pm2 serve /var/www/puc_centre_frontend/dist 3001 --name puc-frontend --spa
 
             pm2 save
-            pm2 status puc-frontend
+            pm2 status

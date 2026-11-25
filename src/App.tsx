@@ -6,9 +6,10 @@ import { AuthScreen } from './components/auth/AuthScreen';
 import { AppShell, type NavRoute } from './components/layout/AppShell';
 import { DashboardView } from './views/DashboardView';
 import { SettingsView } from './views/SettingsView';
+import { AdminView } from './views/AdminView';
 
 function WorkspaceRouter() {
-  const { isAuthenticated, loadingInitial, theme } = useAuth();
+  const { isAuthenticated, loadingInitial, theme, user } = useAuth();
   const [route, setRoute] = useState<NavRoute>('dashboard');
 
   const paletteMode = theme === 'light' ? 'light' : 'dark';
@@ -36,6 +37,8 @@ function WorkspaceRouter() {
         return <DashboardView onNavigate={setRoute} />;
       case 'settings-general':
         return <SettingsView />;
+      case 'admin':
+        return user?.role === 'admin' ? <AdminView /> : <DashboardView onNavigate={setRoute} />;
       default:
         return <DashboardView onNavigate={setRoute} />;
     }
