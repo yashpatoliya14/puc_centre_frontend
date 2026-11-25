@@ -578,10 +578,13 @@ export function PucScannerPanel({
                         <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">
                           {item.vehicleType || '4W'} • {item.fuelType || 'Petrol'}
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <Badge variant="outline" className="font-mono text-[10px] py-0 px-1.5 font-medium">
-                            {item.expiryDate || '—'}
-                          </Badge>
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          <input
+                            type="date"
+                            value={item.expiryDate || ''}
+                            onChange={(e) => updateBulkItem(idx, 'expiryDate', e.target.value)}
+                            className="px-1.5 py-0.5 text-[11px] font-mono rounded border border-transparent hover:border-slate-300 focus:border-indigo-500 bg-transparent focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-colors"
+                          />
                         </td>
                         <td className="px-2 py-2 text-right whitespace-nowrap">
                           <button
