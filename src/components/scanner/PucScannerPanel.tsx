@@ -430,16 +430,13 @@ export function PucScannerPanel({
       {/* TAB 1: VEHICLE NUMBER (Fast Plate Lookup)                             */}
       {/* --------------------------------------------------------------------- */}
       {activeTab === 'vehicle' && (
-        <div className="space-y-3 pt-1">
-          <form
-            onSubmit={(e) => handleVehicleLookup(undefined, e)}
-            className="flex flex-col sm:flex-row gap-2.5"
-          >
+        <div className="space-y-2.5 pt-0.5">
+          <div className="flex flex-col sm:flex-row gap-2">
             {/* Styled Indian Plate Input Container */}
-            <div className="relative flex-1 flex items-center rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus-within:border-indigo-600 dark:focus-within:border-indigo-500 shadow-2xs transition-all overflow-hidden">
+            <div className="relative flex-1 flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-500/20 dark:focus-within:border-indigo-500 shadow-2xs transition-all overflow-hidden">
               {/* Blue IND Strip */}
-              <div className="h-full px-2.5 py-2.5 bg-blue-600 text-white flex flex-col items-center justify-center select-none shrink-0 border-r border-blue-700">
-                <span className="text-[8px] font-bold tracking-widest leading-none">IND</span>
+              <div className="h-full px-2.5 py-2 bg-[#003399] text-white flex flex-col items-center justify-center select-none shrink-0 border-r border-blue-800">
+                <span className="text-[8px] font-black tracking-widest leading-none">IND</span>
                 <span className="text-[10px] leading-none mt-0.5">🇮🇳</span>
               </div>
 
@@ -447,16 +444,22 @@ export function PucScannerPanel({
                 type="text"
                 value={vehicleInput}
                 onChange={(e) => setVehicleInput(e.target.value.toUpperCase())}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleVehicleLookup();
+                  }
+                }}
                 placeholder="GJ01AB1234"
-                className="border-0 shadow-none focus-visible:ring-0 font-mono font-bold text-base tracking-wider uppercase h-10 px-3 bg-transparent text-slate-900 dark:text-white"
-                autoFocus
+                className="border-0 shadow-none focus-visible:ring-0 font-mono font-bold text-sm sm:text-base tracking-wider uppercase h-10 px-3 bg-transparent text-slate-900 dark:text-white"
               />
 
               {vehicleInput && (
                 <button
                   type="button"
                   onClick={() => setVehicleInput('')}
-                  className="pr-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer text-xs"
+                  className="pr-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer text-xs font-medium"
                 >
                   Clear
                 </button>
@@ -464,9 +467,10 @@ export function PucScannerPanel({
             </div>
 
             <Button
-              type="submit"
+              type="button"
+              onClick={() => handleVehicleLookup()}
               disabled={vehicleLoading || !vehicleInput || vehicleInput.trim().length < 5}
-              className="h-11 px-5 font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-600 shrink-0 gap-2 shadow-2xs cursor-pointer disabled:opacity-50"
+              className="h-10 px-4 font-semibold text-xs bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-600 shrink-0 gap-1.5 rounded-xl shadow-2xs cursor-pointer disabled:opacity-50"
             >
               {vehicleLoading ? (
                 <>
@@ -481,10 +485,10 @@ export function PucScannerPanel({
                 </>
               )}
             </Button>
-          </form>
+          </div>
 
           {/* Quick Demo Plate Chips */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Quick Test:</span>
             {['GJ01AB1234', 'GJ01BB7315', 'MH12CD5678'].map((plate) => (
               <button
@@ -500,7 +504,7 @@ export function PucScannerPanel({
               </button>
             ))}
             <span className="text-[10px] text-slate-400 ml-auto hidden sm:inline">
-              ⚡ Auto-detects Category, Fuel Type & 1-Year Expiry
+              ⚡ Auto-detects Category, Fuel Type & Expiry
             </span>
           </div>
         </div>

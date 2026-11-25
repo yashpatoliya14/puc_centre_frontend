@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Car,
   MessageSquare,
@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Users,
+  User,
+  Phone,
   Edit2,
   Trash2,
   ChevronLeft,
@@ -162,6 +164,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   const [editingCustomer, setEditingCustomer] = useState<CustomerItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const formBodyRef = useRef<HTMLDivElement | null>(null);
+
+  const showFormError = (msg: string) => {
+    setFormError(msg);
+    formBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Customer form inputs
   const [fullName, setFullName] = useState('');
@@ -324,34 +332,38 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
     setFormError(null);
 
     const cleanPhone = mobileNumber.replace(/\D/g, '');
+    if (!fullName.trim()) {
+      showFormError('Customer full name is required');
+      return;
+    }
     if (cleanPhone.length < 10) {
-      setFormError('Please enter a valid 10-digit mobile number');
+      showFormError('Please enter a valid 10-digit mobile number');
       return;
     }
     if (!regNumber.trim()) {
-      setFormError('Vehicle registration number is required (e.g. GJ01AB1234)');
+      showFormError('Vehicle registration number is required (e.g. GJ01AB1234)');
       return;
     }
     if (!issueDate || !expiryDate) {
-      setFormError('Both PUC Issue Date and Expiry Date are required');
+      showFormError('Both PUC Issue Date and Expiry Date are required');
       return;
     }
 
     let resolvedCompany = insuranceCompany;
     if (hasInsurance) {
       if (!policyNumber.trim()) {
-        setFormError('Policy Number is compulsory when insurance is enabled');
+        showFormError('Policy Number is compulsory when insurance is enabled');
         return;
       }
       if (insuranceCompany === 'Other') {
         if (!customCompany.trim()) {
-          setFormError('Please enter Insurance Company Name');
+          showFormError('Please enter Insurance Company Name');
           return;
         }
         resolvedCompany = customCompany.trim();
       }
       if (!insStartDate || !insExpiryDate) {
-        setFormError('Policy Start Date and Expiry Date are compulsory');
+        showFormError('Policy Start Date and Expiry Date are compulsory');
         return;
       }
     }
@@ -401,7 +413,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       setModalOpen(false);
       await loadData();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to save customer');
+      showFormError(err instanceof Error ? err.message : 'Failed to save customer');
     } finally {
       setSubmitting(false);
     }
@@ -1067,310 +1079,485 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
       {/* 5. CREATE / EDIT CUSTOMER DIALOG */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[92vh] overflow-y-auto p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
-          <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs">
-                <Car className="h-4 w-4" />
+        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
+          {/* Fixed Header */}
+          <DialogHeader className="px-5 sm:px-6 py-4 pr-12 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/90 shrink-0 text-left">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-slate-900 dark:from-indigo-500 dark:to-indigo-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Car className="h-5 w-5" />
               </div>
-              <div>
-                <DialogTitle className="text-base sm:text-lg font-bold">
-                  {editingCustomer ? `Edit Customer: ${editingCustomer.fullName}` : t('addCustomerTitle')}
-                </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500">
-                  {editingCustomer ? 'Update customer and vehicle certificate specs' : 'Auto-fill from vehicle number, PDF, or image, then confirm details'}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    {editingCustomer ? `Edit Customer: ${editingCustomer.fullName}` : t('addCustomerTitle')}
+                  </DialogTitle>
+                  {!editingCustomer && (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] py-0 px-2 font-semibold bg-indigo-50/80 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800"
+                    >
+                      Quick Entry
+                    </Badge>
+                  )}
+                </div>
+                <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {editingCustomer
+                    ? 'Update customer profile, PUC validity, and insurance renewal dates'
+                    : 'Auto-fill via plate or Parivahan PDF/image, or enter details manually'}
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSaveCustomer} className="space-y-4 pt-1">
-            {formError && (
-              <Alert variant="destructive" className="py-2.5">
-                <AlertDescription>{formError}</AlertDescription>
-              </Alert>
-            )}
+          <form onSubmit={handleSaveCustomer} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Body */}
+            <div ref={formBodyRef} className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-5">
+              {formError && (
+                <Alert variant="destructive" className="py-2.5 rounded-xl">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs font-medium">{formError}</AlertDescription>
+                </Alert>
+              )}
 
-            {/* 1-Click Fast Auto-Fill (Scan QR, Upload Parivahan PDF, Photo & WhatsApp) */}
-            {!editingCustomer && (
-              <PucScannerPanel
-                onExtracted={handleScanAutoFill}
-                onBulkComplete={() => {
-                  setModalOpen(false);
-                  loadData();
-                }}
-              />
-            )}
+              {/* 1-Click Fast Auto-Fill (Scan QR, Upload Parivahan PDF, Photo & WhatsApp) */}
+              {!editingCustomer && (
+                <PucScannerPanel
+                  onExtracted={handleScanAutoFill}
+                  onBulkComplete={() => {
+                    setModalOpen(false);
+                    loadData();
+                  }}
+                />
+              )}
 
-            {/* SECTION 1: Customer Profile */}
-            <div className="space-y-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                1. Customer Details
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="cust-name">{t('customerFullName')} *</Label>
-                  <Input
-                    id="cust-name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Ramesh Patel"
-                    required
-                  />
+              {/* SECTION 1: Customer Profile */}
+              <div className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 p-4 space-y-3.5">
+                <div className="flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold flex items-center justify-center shrink-0">
+                    1
+                  </span>
+                  <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                    Customer Details
+                  </span>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="cust-mobile">{t('customerMobile')} *</Label>
-                  <Input
-                    id="cust-mobile"
-                    value={mobileNumber}
-                    onChange={(e) => setMobileNumber(e.target.value)}
-                    placeholder="9876543210"
-                    className="font-mono"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="cust-lang">{t('preferredLanguage')}</Label>
-                <SelectInput
-                  id="cust-lang"
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as 'gu' | 'hi' | 'en')}
-                >
-                  <option value="gu">Gujarati (ગુજરાતી) — Default</option>
-                  <option value="hi">Hindi (हिंदी)</option>
-                  <option value="en">English</option>
-                </SelectInput>
-              </div>
-            </div>
-
-            {/* SECTION 2: Vehicle & PUC Certificate */}
-            <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                2. Vehicle & PUC Certificate
-              </span>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="veh-plate">{t('vehiclePlate')} *</Label>
-                    <button
-                      type="button"
-                      onClick={() => handleInlinePlateLookup(regNumber)}
-                      disabled={inlineLookupLoading || !regNumber || regNumber.length < 5}
-                      className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <Zap className="h-3 w-3" />
-                      Auto-Fetch
-                    </button>
-                  </div>
-                  <div className="flex gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cust-name" className="text-xs font-semibold">
+                      {t('customerFullName')} <span className="text-red-500">*</span>
+                    </Label>
                     <Input
-                      id="veh-plate"
-                      value={regNumber}
-                      onChange={(e) => setRegNumber(e.target.value)}
-                      onBlur={() => {
-                        const clean = regNumber.replace(/[^A-Za-z0-9]/g, '');
-                        if (clean.length >= 5 && !inlineLookupLoading) {
-                          handleInlinePlateLookup(regNumber);
-                        }
-                      }}
-                      placeholder={t('vehiclePlatePlaceholder')}
-                      className="font-mono uppercase font-bold text-sm tracking-wide"
+                      id="cust-name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Ramesh Patel"
                       required
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleInlinePlateLookup(regNumber)}
-                      disabled={inlineLookupLoading || !regNumber || regNumber.length < 5}
-                      className="h-9 px-3 text-xs font-semibold shrink-0 gap-1 border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/60 cursor-pointer"
-                    >
-                      {inlineLookupLoading ? (
-                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Search className="h-3.5 w-3.5" />
-                      )}
-                      Fetch
-                    </Button>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cust-mobile" className="text-xs font-semibold">
+                      {t('customerMobile')} <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent shadow-xs overflow-hidden">
+                      <span className="px-2.5 h-10 flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/90 border-r border-slate-200 dark:border-slate-700 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 select-none shrink-0">
+                        <Phone className="h-3 w-3 text-slate-400" />
+                        +91
+                      </span>
+                      <Input
+                        id="cust-mobile"
+                        type="tel"
+                        inputMode="tel"
+                        value={mobileNumber}
+                        onChange={(e) => setMobileNumber(e.target.value)}
+                        placeholder="9876543210"
+                        className="border-0 shadow-none focus-visible:ring-0 font-mono bg-transparent"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="veh-type">Vehicle Category</Label>
-                  <SelectInput
-                    id="veh-type"
-                    value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value)}
-                  >
-                    <option value="2-Wheeler">2-Wheeler (Motorcycle/Scooter)</option>
-                    <option value="4-Wheeler">4-Wheeler (Car/Jeep/SUV)</option>
-                    <option value="Commercial">Commercial / Transport</option>
-                    <option value="Other">Other Vehicle</option>
-                  </SelectInput>
+                  <Label className="text-xs font-semibold">{t('preferredLanguage')}</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { code: 'gu' as const, label: 'Gujarati', native: 'ગુજરાતી' },
+                      { code: 'hi' as const, label: 'Hindi', native: 'हिंदी' },
+                      { code: 'en' as const, label: 'English', native: 'ENG' },
+                    ].map((lang) => {
+                      const active = language === lang.code;
+                      return (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          onClick={() => setLanguage(lang.code)}
+                          className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                            active
+                              ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-indigo-300 shadow-2xs'
+                              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
+                          }`}
+                        >
+                          <span>{lang.label}</span>
+                          <span className="text-[10px] opacity-75">({lang.native})</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="veh-fuel">Fuel Type</Label>
-                  <SelectInput
-                    id="veh-fuel"
-                    value={fuelType}
-                    onChange={(e) => setFuelType(e.target.value)}
-                  >
-                    <option value="Petrol">Petrol</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="CNG">CNG</option>
-                    <option value="Electric">Electric / EV</option>
-                  </SelectInput>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="veh-model">Vehicle Make / Model (Optional)</Label>
-                  <Input
-                    id="veh-model"
-                    value={makeModel}
-                    onChange={(e) => setMakeModel(e.target.value)}
-                    placeholder="e.g. Honda Activa 6G"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="puc-issue">Certificate Issue Date *</Label>
-                  <Input
-                    id="puc-issue"
-                    type="date"
-                    value={issueDate}
-                    onChange={(e) => setIssueDate(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="puc-expiry">{t('pucExpiryDate')} *</Label>
-                  <Input
-                    id="puc-expiry"
-                    type="date"
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* SECTION 3: Insurance Details (Optional) */}
-            <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                    3. Insurance Policy (Optional)
+              {/* SECTION 2: Vehicle & PUC Certificate */}
+              <div className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 p-4 space-y-3.5">
+                <div className="flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold flex items-center justify-center shrink-0">
+                    2
                   </span>
-                  <span className="text-[11px] text-slate-500">
-                    Track insurance renewals alongside PUC certificates
+                  <ShieldCheck className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                    Vehicle & PUC Certificate
                   </span>
                 </div>
-                <Switch
-                  checked={hasInsurance}
-                  onCheckedChange={setHasInsurance}
-                />
-              </div>
 
-              {hasInsurance && (
-                <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="ins-number">Policy Number *</Label>
-                      <Input
-                        id="ins-number"
-                        value={policyNumber}
-                        onChange={(e) => setPolicyNumber(e.target.value)}
-                        placeholder="e.g. 3001/2026/89472"
-                        className="font-mono text-xs"
-                        required={hasInsurance}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="ins-company">Insurance Company *</Label>
-                      <SelectInput
-                        id="ins-company"
-                        value={insuranceCompany}
-                        onChange={(e) => setInsuranceCompany(e.target.value)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="veh-plate" className="text-xs font-semibold">
+                      {t('vehiclePlate')} <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="flex gap-2">
+                      <div className="flex-1 flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent shadow-xs overflow-hidden">
+                        <span className="px-2 h-10 bg-[#003399] text-white text-[9px] font-black tracking-wider flex items-center justify-center select-none shrink-0">
+                          IND
+                        </span>
+                        <Input
+                          id="veh-plate"
+                          value={regNumber}
+                          onChange={(e) => setRegNumber(e.target.value.toUpperCase())}
+                          placeholder={t('vehiclePlatePlaceholder')}
+                          className="border-0 shadow-none focus-visible:ring-0 font-mono uppercase font-bold text-sm tracking-wide bg-transparent"
+                          required
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleInlinePlateLookup(regNumber)}
+                        disabled={inlineLookupLoading || !regNumber || regNumber.replace(/[^A-Za-z0-9]/g, '').length < 5}
+                        title="Auto-fetch vehicle specs from plate"
+                        className="h-10 px-3 text-xs font-semibold shrink-0 gap-1.5 border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/70 dark:hover:bg-indigo-950/50 cursor-pointer"
                       >
-                        {COMMON_INSURERS.map((comp) => (
-                          <option key={comp} value={comp}>
-                            {comp}
-                          </option>
-                        ))}
-                      </SelectInput>
+                        {inlineLookupLoading ? (
+                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Zap className="h-3.5 w-3.5" />
+                        )}
+                        Fetch
+                      </Button>
                     </div>
                   </div>
 
-                  {insuranceCompany === 'Other' && (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="ins-custom">Enter Company Name *</Label>
-                      <Input
-                        id="ins-custom"
-                        value={customCompany}
-                        onChange={(e) => setCustomCompany(e.target.value)}
-                        placeholder="Company Name"
-                        required={hasInsurance}
-                      />
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="ins-start">Policy Start Date *</Label>
-                      <Input
-                        id="ins-start"
-                        type="date"
-                        value={insStartDate}
-                        onChange={(e) => setInsStartDate(e.target.value)}
-                        required={hasInsurance}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="ins-expiry">Policy Expiry Date *</Label>
-                      <Input
-                        id="ins-expiry"
-                        type="date"
-                        value={insExpiryDate}
-                        onChange={(e) => setInsExpiryDate(e.target.value)}
-                        required={hasInsurance}
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="veh-type" className="text-xs font-semibold">
+                      Vehicle Category
+                    </Label>
+                    <SelectInput
+                      id="veh-type"
+                      value={vehicleType}
+                      onChange={(e) => setVehicleType(e.target.value)}
+                    >
+                      <option value="2-Wheeler">2-Wheeler (Motorcycle/Scooter)</option>
+                      <option value="4-Wheeler">4-Wheeler (Car/Jeep/SUV)</option>
+                      <option value="Commercial">Commercial / Transport</option>
+                      <option value="Other">Other Vehicle</option>
+                    </SelectInput>
                   </div>
                 </div>
-              )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="veh-fuel" className="text-xs font-semibold">
+                      Fuel Type
+                    </Label>
+                    <SelectInput
+                      id="veh-fuel"
+                      value={fuelType}
+                      onChange={(e) => setFuelType(e.target.value)}
+                    >
+                      <option value="Petrol">Petrol</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="CNG">CNG</option>
+                      <option value="Electric">Electric / EV</option>
+                    </SelectInput>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="veh-model" className="text-xs font-semibold">
+                      Make / Model <span className="text-slate-400 font-normal">(Optional)</span>
+                    </Label>
+                    <Input
+                      id="veh-model"
+                      value={makeModel}
+                      onChange={(e) => setMakeModel(e.target.value)}
+                      placeholder="e.g. Honda Activa 6G"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="puc-cert-no" className="text-xs font-semibold">
+                      PUC Cert No. <span className="text-slate-400 font-normal">(Optional)</span>
+                    </Label>
+                    <Input
+                      id="puc-cert-no"
+                      value={certNumber}
+                      onChange={(e) => setCertNumber(e.target.value.toUpperCase())}
+                      placeholder="e.g. GJ01PU001234"
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="puc-issue" className="text-xs font-semibold">
+                      Certificate Issue Date <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="puc-issue"
+                      type="date"
+                      value={issueDate}
+                      onChange={(e) => setIssueDate(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label htmlFor="puc-expiry" className="text-xs font-semibold">
+                        {t('pucExpiryDate')} <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setExpiryDate(addDaysIsoDate(issueDate || todayIsoDate(), 180))}
+                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200/80 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                        >
+                          +6 Mo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpiryDate(addDaysIsoDate(issueDate || todayIsoDate(), 365))}
+                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200/80 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                        >
+                          +1 Yr
+                        </button>
+                      </div>
+                    </div>
+                    <Input
+                      id="puc-expiry"
+                      type="date"
+                      value={expiryDate}
+                      onChange={(e) => setExpiryDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: Insurance Details (Optional) */}
+              <div
+                className={`rounded-xl border p-4 space-y-3.5 transition-colors ${
+                  hasInsurance
+                    ? 'border-indigo-200 dark:border-indigo-900/70 bg-indigo-50/30 dark:bg-indigo-950/20'
+                    : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-5 w-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold flex items-center justify-center shrink-0">
+                      3
+                    </span>
+                    <Shield className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                          Insurance Policy
+                        </span>
+                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-medium text-slate-500">
+                          Optional
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Track insurance renewals alongside PUC certificates
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={hasInsurance}
+                    onCheckedChange={setHasInsurance}
+                  />
+                </div>
+
+                {hasInsurance && (
+                  <div className="pt-3 border-t border-slate-200/70 dark:border-slate-800 space-y-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="ins-number" className="text-xs font-semibold">
+                          Policy Number <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="ins-number"
+                          value={policyNumber}
+                          onChange={(e) => setPolicyNumber(e.target.value)}
+                          placeholder="e.g. 3001/2026/89472"
+                          className="font-mono text-xs"
+                          required={hasInsurance}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="ins-company" className="text-xs font-semibold">
+                          Insurance Company <span className="text-red-500">*</span>
+                        </Label>
+                        <SelectInput
+                          id="ins-company"
+                          value={insuranceCompany}
+                          onChange={(e) => setInsuranceCompany(e.target.value)}
+                        >
+                          {COMMON_INSURERS.map((comp) => (
+                            <option key={comp} value={comp}>
+                              {comp}
+                            </option>
+                          ))}
+                        </SelectInput>
+                      </div>
+                    </div>
+
+                    {insuranceCompany === 'Other' && (
+                      <div className="space-y-1.5">
+                        <Label htmlFor="ins-custom" className="text-xs font-semibold">
+                          Enter Company Name <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="ins-custom"
+                          value={customCompany}
+                          onChange={(e) => setCustomCompany(e.target.value)}
+                          placeholder="Company Name"
+                          required={hasInsurance}
+                        />
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="ins-policy-type" className="text-xs font-semibold">
+                          Policy Type
+                        </Label>
+                        <SelectInput
+                          id="ins-policy-type"
+                          value={policyType}
+                          onChange={(e) => setPolicyType(e.target.value)}
+                        >
+                          <option value="Comprehensive">Comprehensive</option>
+                          <option value="Third Party">Third Party</option>
+                          <option value="Own Damage">Own Damage</option>
+                        </SelectInput>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="ins-premium" className="text-xs font-semibold">
+                          Premium Amount (₹) <span className="text-slate-400 font-normal">(Optional)</span>
+                        </Label>
+                        <Input
+                          id="ins-premium"
+                          type="number"
+                          min="0"
+                          value={premiumAmount}
+                          onChange={(e) => setPremiumAmount(e.target.value)}
+                          placeholder="e.g. 2450"
+                          className="font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="ins-start" className="text-xs font-semibold">
+                          Policy Start Date <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="ins-start"
+                          type="date"
+                          value={insStartDate}
+                          onChange={(e) => setInsStartDate(e.target.value)}
+                          required={hasInsurance}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <Label htmlFor="ins-expiry" className="text-xs font-semibold">
+                            Policy Expiry Date <span className="text-red-500">*</span>
+                          </Label>
+                          <button
+                            type="button"
+                            onClick={() => setInsExpiryDate(addDaysIsoDate(insStartDate || todayIsoDate(), 365))}
+                            className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200/80 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                          >
+                            +1 Yr
+                          </button>
+                        </div>
+                        <Input
+                          id="ins-expiry"
+                          type="date"
+                          value={insExpiryDate}
+                          onChange={(e) => setInsExpiryDate(e.target.value)}
+                          required={hasInsurance}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <DialogFooter className="pt-3 border-t border-slate-100 dark:border-slate-800">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setModalOpen(false)}
-                disabled={submitting}
-              >
-                {t('cancel')}
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={submitting}
-                className="font-semibold cursor-pointer"
-              >
-                {submitting ? t('savingCustomer') : editingCustomer ? 'Save Changes' : t('saveCustomer')}
-              </Button>
+            {/* Sticky Footer */}
+            <DialogFooter className="px-5 sm:px-6 py-3.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 flex flex-row items-center justify-between gap-3 shrink-0 sm:space-x-0">
+              <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                <span>WhatsApp renewal reminders auto-scheduled</span>
+              </div>
+              <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setModalOpen(false)}
+                  disabled={submitting}
+                  className="h-9 px-4 text-xs font-medium cursor-pointer"
+                >
+                  {t('cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={submitting}
+                  className="h-9 px-5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 gap-1.5 shadow-xs cursor-pointer"
+                >
+                  {submitting ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      <span>{t('savingCustomer')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span>{editingCustomer ? 'Save Changes' : t('saveCustomer')}</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -1378,24 +1565,24 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
       {/* 5B. DEDICATED BULK REGISTRATION DIALOG (PDF & IMAGE) */}
       <Dialog open={bulkModalOpen} onOpenChange={setBulkModalOpen}>
-        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[92vh] overflow-y-auto p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
-          <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <FileText className="h-4 w-4" />
+        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
+          <DialogHeader className="px-5 sm:px-6 py-4 pr-12 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/90 shrink-0 text-left">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <FileText className="h-5 w-5" />
               </div>
               <div>
                 <DialogTitle className="text-base sm:text-lg font-bold">
                   Bulk Register Customers (PDF & Images)
                 </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500">
-                  Select or drop multiple Parivahan PDF certificates or images at once. The system will auto-extract customer names, vehicle numbers, fuel types, and expiry dates, then register all customers in 1 click.
+                <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Drop multiple Parivahan PDF certificates or images at once to auto-extract and register all customers in 1 click.
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          <div className="py-2">
+          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5">
             <PucScannerPanel
               initialTab="upload"
               hideTabs={true}
@@ -1418,7 +1605,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         open={Boolean(whatsappCustomer)}
         onOpenChange={(open) => !open && setWhatsappCustomer(null)}
       >
-        <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl">
+        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden rounded-2xl">
           <div className="bg-[#075E54] text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <Avatar className="h-8 w-8 bg-white/20 text-white font-bold ring-1 ring-white/30 text-xs">
