@@ -14,6 +14,8 @@ import {
   RefreshCw,
   CheckCircle2,
   XCircle,
+  Search,
+  Filter,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiRequest } from '../lib/api';
@@ -85,17 +87,51 @@ interface WhatsAppEngineSummary {
   unlimited?: boolean;
 }
 
+interface SchedulePreviewRule {
+  key: string;
+  offset: number;
+  label: string;
+}
+
+interface SchedulePreviewItem {
+  id: string;
+  customerId: string;
+  customerName: string;
+  mobileNumber: string;
+  vehiclePlate: string;
+  entityType: 'puc' | 'insurance';
+  expiryDate: string;
+  ruleKey: string;
+  ruleLabel: string;
+  offsetDays: number;
+  scheduledDateIst: string;
+  scheduledTimes: string[];
+  daysUntilScheduled: number;
+  status: 'sent' | 'not_sent' | 'failed' | 'paused';
+  statusLabel: string;
+  sentSlots: string[];
+  lastSentAt: string | null;
+  lastError: string | null;
+}
+
 export function SettingsView() {
   const { t } = useI18n();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // WhatsApp Engine Live Status & Logs
+  // WhatsApp Engine Live Status, Schedule Preview & Logs
   const [waSummary, setWaSummary] = useState<WhatsAppEngineSummary | null>(null);
   const [waLogs, setWaLogs] = useState<WhatsAppLogItem[]>([]);
+  const [scheduleRules, setScheduleRules] = useState<SchedulePreviewRule[]>([]);
+  const [scheduleItems, setScheduleItems] = useState<SchedulePreviewItem[]>([]);
+  const [scheduleTodayIst, setScheduleTodayIst] = useState<string>('');
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [runningEngine, setRunningEngine] = useState(false);
+  const [activityTab, setActivityTab] = useState<'schedule' | 'logs'>('schedule');
+  const [ruleFilter, setRuleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'sent' | 'not_sent' | 'failed'>('all');
+  const [scheduleSearch, setScheduleSearch] = useState('');
 
   // WhatsApp Messaging Master Switch
   const [messagesEnabled, setMessagesEnabled] = useState(true);
@@ -151,13 +187,24 @@ export function SettingsView() {
   const loadWhatsAppLogs = useCallback(async () => {
     setLoadingLogs(true);
     try {
-      const res = await apiRequest<{
-        ok: boolean;
-        summary: WhatsAppEngineSummary;
-        items: WhatsAppLogItem[];
-      }>('/api/whatsapp/logs?limit=15');
-      setWaSummary(res.summary || null);
-      setWaLogs(res.items || []);
+      const [logsRes, previewRes] = await Promise.all([
+        apiRequest<{
+          ok: boolean;
+          summary: WhatsAppEngineSummary;
+          items: WhatsAppLogItem[];
+        }>('/api/whatsapp/logs?limit=25'),
+        apiRequest<{
+          ok: boolean;
+          todayIst: string;
+          rules: SchedulePreviewRule[];
+          items: SchedulePreviewItem[];
+        }>('/api/whatsapp/schedule-preview'),
+      ]);
+      setWaSummary(logsRes.summary || null);
+      setWaLogs(logsRes.items || []);
+      setScheduleTodayIst(previewRes.todayIst || '');
+      setScheduleRules(previewRes.rules || []);
+      setScheduleItems(previewRes.items || []);
     } catch {
       // ignore initial log fetch error cleanly
     } finally {
@@ -307,6 +354,25 @@ export function SettingsView() {
   };
 
   const totalSchedulePoints = remindDaysBefore.length + remindDaysAfter.length;
+
+  const filteredScheduleItems = scheduleItems.filter((item) => {
+    if (ruleFilter === 'due_today' && item.daysUntilScheduled !== 0) return false;
+    if (ruleFilter !== 'all' && ruleFilter !== 'due_today' && item.ruleKey !== ruleFilter) return false;
+
+    if (statusFilter === 'sent' && item.status !== 'sent') return false;
+    if (statusFilter === 'not_sent' && item.status !== 'not_sent' && item.status !== 'paused') return false;
+    if (statusFilter === 'failed' && item.status !== 'failed') return false;
+
+    const q = scheduleSearch.trim().toLowerCase();
+    if (q) {
+      return (
+        item.customerName.toLowerCase().includes(q) ||
+        item.mobileNumber.toLowerCase().includes(q) ||
+        item.vehiclePlate.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
 
   if (loading) {
     return (
@@ -762,13 +828,197 @@ export function SettingsView() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4 sm:p-5">
-          {waLogs.length === 0 ? (
+        <CardContent className="p-4 sm:p-5 space-y-4">
+          {/* Sub-tabs: Scheduled Customer Queue vs Recent Logs */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setActivityTab('schedule')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                  activityTab === 'schedule'
+                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                Customer Schedule &amp; Status ({scheduleItems.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivityTab('logs')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                  activityTab === 'logs'
+                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                Dispatch History ({waLogs.length})
+              </button>
+            </div>
+            {scheduleTodayIst && (
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                Today (IST): {scheduleTodayIst} • Slots: {(waSummary?.deliveryTimes || deliveryTimes).join(', ')}
+              </span>
+            )}
+          </div>
+
+          {activityTab === 'schedule' ? (
+            <div className="space-y-3">
+              {/* Filter Bar: By Enabled Settings Rule + Sent / Not Sent + Search */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800">
+                <div className="space-y-2 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1 mr-1">
+                      <Filter className="w-3 h-3" />
+                      Settings Rule:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setRuleFilter('all')}
+                      className={`text-[11px] px-2.5 py-1 rounded-md font-medium border cursor-pointer transition-colors ${
+                        ruleFilter === 'all'
+                          ? 'bg-indigo-600 text-white border-transparent'
+                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      All Rules
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRuleFilter('due_today')}
+                      className={`text-[11px] px-2.5 py-1 rounded-md font-medium border cursor-pointer transition-colors ${
+                        ruleFilter === 'due_today'
+                          ? 'bg-indigo-600 text-white border-transparent'
+                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      Due Today
+                    </button>
+                    {scheduleRules.map((rule) => (
+                      <button
+                        key={rule.key}
+                        type="button"
+                        onClick={() => setRuleFilter(rule.key)}
+                        className={`text-[11px] px-2.5 py-1 rounded-md font-medium border cursor-pointer transition-colors ${
+                          ruleFilter === rule.key
+                            ? 'bg-indigo-600 text-white border-transparent'
+                            : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {rule.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mr-1">
+                      Status:
+                    </span>
+                    {(
+                      [
+                        { id: 'all', label: 'All' },
+                        { id: 'sent', label: 'Sent' },
+                        { id: 'not_sent', label: 'Not Sent' },
+                        { id: 'failed', label: 'Failed' },
+                      ] as const
+                    ).map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => setStatusFilter(st.id)}
+                        className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium border cursor-pointer transition-colors ${
+                          statusFilter === st.id
+                            ? 'bg-slate-900 text-white dark:bg-indigo-500 dark:text-white border-transparent'
+                            : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="relative w-full lg:w-64 shrink-0">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Input
+                    value={scheduleSearch}
+                    onChange={(e) => setScheduleSearch(e.target.value)}
+                    placeholder="Filter customer, mobile, plate..."
+                    className="h-8 pl-8 text-xs bg-white dark:bg-slate-950"
+                  />
+                </div>
+              </div>
+
+              {filteredScheduleItems.length === 0 ? (
+                <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-6">
+                  No customers match the selected Settings rule and status filter.
+                </p>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-slate-800/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-hidden max-h-[420px] overflow-y-auto">
+                  {filteredScheduleItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-white dark:bg-slate-950/50"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100 flex flex-wrap items-center gap-1.5">
+                          <span>{item.customerName}</span>
+                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                            {item.vehiclePlate}
+                          </span>
+                          <Badge variant="outline" className="text-[10px]">
+                            {item.entityType.toUpperCase()} • Exp: {item.expiryDate}
+                          </Badge>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {item.ruleLabel}
+                          </Badge>
+                        </div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex flex-wrap items-center gap-2">
+                          <span>{item.mobileNumber}</span>
+                          <span>•</span>
+                          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+                            Send on: {item.scheduledDateIst} @ {item.scheduledTimes.join(', ')} IST
+                          </span>
+                          {item.daysUntilScheduled === 0 && (
+                            <span className="px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-sans font-semibold">
+                              Today
+                            </span>
+                          )}
+                          {item.lastError && <span className="text-red-500">({item.lastError})</span>}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                        <Badge
+                          variant={
+                            item.status === 'sent'
+                              ? 'default'
+                              : item.status === 'failed'
+                                ? 'destructive'
+                                : 'secondary'
+                          }
+                          className={`text-[10px] ${
+                            item.status === 'sent'
+                              ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
+                              : item.status === 'not_sent' && item.daysUntilScheduled === 0
+                                ? 'bg-amber-500 text-white hover:bg-amber-500'
+                                : ''
+                          }`}
+                        >
+                          {item.status === 'sent' ? `Sent (${item.sentSlots.join(', ')})` : item.statusLabel}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : waLogs.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-6">
               No WhatsApp dispatches logged yet. Save your active delivery times or click “Run Engine Now” to dispatch matching due reminders.
             </p>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-hidden max-h-[420px] overflow-y-auto">
               {waLogs.map((log) => (
                 <div key={log.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-white dark:bg-slate-950/50">
                   <div className="flex items-center gap-2.5">
