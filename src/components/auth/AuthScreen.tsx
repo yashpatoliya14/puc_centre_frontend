@@ -128,9 +128,9 @@ export function AuthScreen() {
       );
       return;
     }
-    if (regOtpSent && !regEmailVerified) {
-      if (!regOtpCode.trim()) {
-        toast.error('Please enter the 6-digit OTP sent to your email or click Resend OTP');
+    if (!regEmailVerified) {
+      if (!regOtpSent || !regOtpCode.trim()) {
+        toast.error('Email is not verified. Click "Verify" next to your email and confirm the 6-digit OTP before registering.');
         return;
       }
       setLoading(true);
@@ -140,13 +140,13 @@ export function AuthScreen() {
           body: { email: email.trim().toLowerCase(), code: regOtpCode.trim() },
         });
         if (!otpRes.verified) {
-          toast.error('Invalid verification code');
+          toast.error('Email is not verified. Invalid verification code.');
           setLoading(false);
           return;
         }
         setRegEmailVerified(true);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Invalid or expired OTP code');
+        toast.error(err instanceof Error ? err.message : 'Email is not verified. Invalid or expired OTP code.');
         setLoading(false);
         return;
       }
