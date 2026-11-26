@@ -128,6 +128,29 @@ export function AuthScreen() {
       );
       return;
     }
+    if (regOtpSent && !regEmailVerified) {
+      if (!regOtpCode.trim()) {
+        toast.error('Please enter the 6-digit OTP sent to your email or click Resend OTP');
+        return;
+      }
+      setLoading(true);
+      try {
+        const otpRes = await apiRequest<{ ok: boolean; verified: boolean }>('/api/auth/verify-registration-otp', {
+          method: 'POST',
+          body: { email: email.trim().toLowerCase(), code: regOtpCode.trim() },
+        });
+        if (!otpRes.verified) {
+          toast.error('Invalid verification code');
+          setLoading(false);
+          return;
+        }
+        setRegEmailVerified(true);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Invalid or expired OTP code');
+        setLoading(false);
+        return;
+      }
+    }
     setLoading(true);
     try {
       const res = await register({
@@ -628,6 +651,12 @@ export function AuthScreen() {
                         <Input
                           value={regOtpCode}
                           onChange={(e) => setRegOtpCode(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleConfirmRegistrationOtp();
+                            }
+                          }}
                           placeholder="Enter 6-digit OTP"
                           maxLength={10}
                           className="h-8 font-mono text-xs bg-white dark:bg-slate-950"
