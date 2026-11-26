@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Car,
   Sparkles,
@@ -47,12 +47,24 @@ export function AuthScreen() {
   const [password, setPassword] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
 
-  // Register inputs
+  // Register inputs & pre-verification OTP state
   const [businessName, setBusinessName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [address, setAddress] = useState('');
   const [preloadSampleData, setPreloadSampleData] = useState(true);
+  const [regOtpSent, setRegOtpSent] = useState(false);
+  const [regOtpCode, setRegOtpCode] = useState('');
+  const [regEmailVerified, setRegEmailVerified] = useState(false);
+  const [sendingRegOtp, setSendingRegOtp] = useState(false);
+  const [verifyingRegOtp, setVerifyingRegOtp] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((prev) => Math.max(0, prev - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   // Forgot password inputs
   const [resetToken, setResetToken] = useState('');
@@ -158,6 +170,67 @@ export function AuthScreen() {
     }
   };
 
+  const handleSendRegistrationOtp = async () => {
+    if (!isStrongId(email)) {
+      toast.error('Owner ID (Email) must be a valid email with at least 4 characters before @');
+      return;
+    }
+    setSendingRegOtp(true);
+    try {
+      const res = await apiRequest<{
+        ok: boolean;
+        emailSent?: boolean;
+        message: string;
+        previewOtpCode?: string;
+      }>('/api/auth/send-registration-otp', {
+        method: 'POST',
+        body: {
+          email: email.trim().toLowerCase(),
+          ownerName: ownerName.trim() || undefined,
+          businessName: businessName.trim() || undefined,
+        },
+      });
+      setRegOtpSent(true);
+      setResendCooldown(30);
+      if (res.previewOtpCode) {
+        setRegOtpCode(res.previewOtpCode);
+      }
+      toast.success(res.message);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send verification OTP');
+    } finally {
+      setSendingRegOtp(false);
+    }
+  };
+
+  const handleConfirmRegistrationOtp = async () => {
+    if (!regOtpCode.trim()) {
+      toast.error('Enter the 6-digit verification code sent to your email');
+      return;
+    }
+    setVerifyingRegOtp(true);
+    try {
+      const res = await apiRequest<{ ok: boolean; verified: boolean; message: string }>(
+        '/api/auth/verify-registration-otp',
+        {
+          method: 'POST',
+          body: {
+            email: email.trim().toLowerCase(),
+            code: regOtpCode.trim(),
+          },
+        },
+      );
+      if (res.verified) {
+        setRegEmailVerified(true);
+        toast.success(res.message || 'Email verified!');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Invalid or expired OTP code');
+    } finally {
+      setVerifyingRegOtp(false);
+    }
+  };
+
   const handleResendVerification = async () => {
     if (!email.trim()) {
       toast.error('Enter your registered email address first');
@@ -169,6 +242,7 @@ export function AuthScreen() {
         method: 'POST',
         body: { email },
       });
+      setResendCooldown(30);
       toast.success(res.message);
       if (res.alreadyVerified) {
         setMode('login');
@@ -485,22 +559,91 @@ export function AuthScreen() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="reg-email">Strong Owner ID (Email) *</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <Input
-                          id="reg-email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="centre.owner@example.com"
-                          className="pl-9"
-                          required
-                        />
+                      <div className="flex items-center justify-between gap-2">
+                        <Label htmlFor="reg-email">Strong Owner ID (Email) *</Label>
+                        {regEmailVerified && (
+                          <Badge className="text-[10px] bg-emerald-600 text-white gap-1 px-1.5 py-0">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Verified
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-1.5">
+                        <div className="relative flex-1">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                          <Input
+                            id="reg-email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              setRegEmailVerified(false);
+                              setRegOtpSent(false);
+                              setRegOtpCode('');
+                            }}
+                            placeholder="centre.owner@example.com"
+                            className="pl-9"
+                            required
+                          />
+                        </div>
+                        {!regEmailVerified && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSendRegistrationOtp}
+                            disabled={sendingRegOtp || (regOtpSent && resendCooldown > 0)}
+                            className="h-9 px-2.5 text-xs font-semibold shrink-0 cursor-pointer border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-950/50"
+                          >
+                            {sendingRegOtp
+                              ? 'Sending...'
+                              : regOtpSent
+                                ? resendCooldown > 0
+                                  ? `Resend (${resendCooldown}s)`
+                                  : 'Resend'
+                                : 'Verify'}
+                          </Button>
+                        )}
                       </div>
                       <p className="text-[11px] text-slate-500">Min 4 characters before @</p>
                     </div>
                   </div>
+
+                  {regOtpSent && !regEmailVerified && (
+                    <div className="rounded-lg border border-indigo-200 dark:border-indigo-900/70 bg-indigo-50/70 dark:bg-indigo-950/30 p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+                          Verify code sent to {email}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleSendRegistrationOtp}
+                          disabled={sendingRegOtp || resendCooldown > 0}
+                          className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50 cursor-pointer"
+                        >
+                          {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={regOtpCode}
+                          onChange={(e) => setRegOtpCode(e.target.value)}
+                          placeholder="Enter 6-digit OTP"
+                          maxLength={10}
+                          className="h-8 font-mono text-xs bg-white dark:bg-slate-950"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleConfirmRegistrationOtp}
+                          disabled={verifyingRegOtp || !regOtpCode.trim()}
+                          className="h-8 px-3 text-xs bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 cursor-pointer"
+                        >
+                          {verifyingRegOtp ? 'Checking...' : 'Confirm OTP'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <Label htmlFor="reg-password">Strong Password (min 10 chars) *</Label>
@@ -595,10 +738,14 @@ export function AuthScreen() {
                       type="button"
                       variant="outline"
                       onClick={handleResendVerification}
-                      disabled={resendingCode}
+                      disabled={resendingCode || resendCooldown > 0}
                       className="w-2/5 cursor-pointer"
                     >
-                      {resendingCode ? 'Sending...' : 'Resend Code'}
+                      {resendingCode
+                        ? 'Sending...'
+                        : resendCooldown > 0
+                          ? `Resend (${resendCooldown}s)`
+                          : 'Resend Code'}
                     </Button>
                     <Button
                       type="submit"
