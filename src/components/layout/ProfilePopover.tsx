@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   User,
   Building2,
@@ -17,8 +17,6 @@ import {
   KeyRound,
   Eye,
   EyeOff,
-  Laptop,
-  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth, type ThemePreference } from '../../context/AuthContext';
@@ -45,15 +43,6 @@ interface ProfileModalProps {
   trigger?: React.ReactNode;
 }
 
-interface SessionItem {
-  id: string;
-  user_agent: string | null;
-  ip_address: string | null;
-  expires_at: string;
-  created_at: string;
-  isCurrent: boolean;
-}
-
 export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps) {
   const { user, tenant, theme, applyTheme, logout, refreshProfile } = useAuth();
   const { lang, setLang, t } = useI18n();
@@ -69,25 +58,11 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
   const [saving, setSaving] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Security tab: password + active sessions
+  // Security tab: password update
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
-  const [sessions, setSessions] = useState<SessionItem[]>([]);
-  const [loadingSessions, setLoadingSessions] = useState(false);
-
-  const loadSessions = useCallback(async () => {
-    setLoadingSessions(true);
-    try {
-      const res = await apiRequest<SessionItem[]>('/api/auth/sessions');
-      setSessions(Array.isArray(res) ? res : []);
-    } catch {
-      // ignore if sessions fail to load
-    } finally {
-      setLoadingSessions(false);
-    }
-  }, []);
 
   const wasOpenRef = useRef(false);
 
@@ -105,12 +80,6 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
     }
     wasOpenRef.current = open;
   }, [open, user, tenant]);
-
-  useEffect(() => {
-    if (open && activeTab === 'security') {
-      loadSessions();
-    }
-  }, [open, activeTab, loadSessions]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,16 +149,6 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
       toast.error(err instanceof Error ? err.message : 'Failed to update password');
     } finally {
       setChangingPassword(false);
-    }
-  };
-
-  const handleRevokeSession = async (sessionId: string) => {
-    try {
-      await apiRequest(`/api/auth/sessions/${sessionId}`, { method: 'DELETE' });
-      toast.success('Session signed out');
-      await loadSessions();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not revoke session');
     }
   };
 
@@ -461,7 +420,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
               </div>
             </TabsContent>
 
-            {/* TAB 3: SECURITY & ACTIVE SESSIONS */}
+            {/* TAB 3: SECURITY */}
             <TabsContent value="security" className="mt-0 space-y-5">
               <form id="profile-password-form" onSubmit={handleChangePassword} className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -517,59 +476,6 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                   </div>
                 )}
               </form>
-
-              <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold flex items-center gap-1.5">
-                    <Laptop className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                    Active Login Sessions ({sessions.length})
-                  </Label>
-                  <span className="text-[11px] text-zinc-400">30-day session</span>
-                </div>
-
-                {loadingSessions ? (
-                  <p className="text-xs text-zinc-400 py-2">Loading active sessions...</p>
-                ) : sessions.length === 0 ? (
-                  <p className="text-xs text-zinc-400 py-2">No active sessions found.</p>
-                ) : (
-                  <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                    {sessions.map((s) => (
-                      <div
-                        key={s.id}
-                        className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 text-xs"
-                      >
-                        <div className="min-w-0">
-                          <div className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 truncate">
-                            <span className="truncate max-w-[230px]">
-                              {s.user_agent || 'Web Session'}
-                            </span>
-                            {s.isCurrent && (
-                              <Badge className="text-[9px] px-1.5 py-0 bg-blue-600 text-white">
-                                This Device
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-[10px] text-zinc-500 font-mono mt-0.5">
-                            IP: {s.ip_address || '—'} • Expires {s.expires_at?.slice(0, 10)}
-                          </div>
-                        </div>
-                        {!s.isCurrent && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => handleRevokeSession(s.id)}
-                            title="Revoke session"
-                            className="h-7 w-7 text-zinc-400 hover:text-red-600 cursor-pointer shrink-0"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </TabsContent>
           </div>
         </Tabs>
