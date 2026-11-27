@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   User,
   Building2,
@@ -10,11 +10,18 @@ import {
   LogOut,
   Save,
   CheckCircle2,
+  AlertCircle,
   Globe,
-  Settings,
+  MapPin,
+  Shield,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Laptop,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, type ThemePreference } from '../../context/AuthContext';
 import { useI18n, type Language } from '../../context/I18nContext';
 import { apiRequest } from '../../lib/api';
 import {
@@ -25,8 +32,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 
@@ -36,26 +45,69 @@ interface ProfileModalProps {
   trigger?: React.ReactNode;
 }
 
+interface SessionItem {
+  id: string;
+  user_agent: string | null;
+  ip_address: string | null;
+  expires_at: string;
+  created_at: string;
+  isCurrent: boolean;
+}
+
 export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps) {
   const { user, tenant, theme, applyTheme, logout, refreshProfile } = useAuth();
   const { lang, setLang, t } = useI18n();
 
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security'>('profile');
+
+  // Profile fields
   const [businessName, setBusinessName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [address, setAddress] = useState('');
   const [saving, setSaving] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Sync state whenever modal opens or user/tenant changes
+  // Security tab: password + active sessions
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+
+  const loadSessions = useCallback(async () => {
+    setLoadingSessions(true);
+    try {
+      const res = await apiRequest<SessionItem[]>('/api/auth/sessions');
+      setSessions(Array.isArray(res) ? res : []);
+    } catch {
+      // ignore if sessions fail to load
+    } finally {
+      setLoadingSessions(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (open) {
       setBusinessName(tenant?.businessName || '');
       setOwnerName(tenant?.ownerName || user?.fullName || '');
       setEmail(user?.email || tenant?.email || '');
-      setMobileNumber(user?.mobileNumber || tenant?.mobileNumber || '');
+      setMobileNumber((user?.mobileNumber || tenant?.mobileNumber || '').replace(/^\+?91/, ''));
+      setAddress(tenant?.address || '');
+      setCurrentPassword('');
+      setNewPassword('');
+      setShowPasswords(false);
+      setActiveTab('profile');
     }
   }, [open, user, tenant]);
+
+  useEffect(() => {
+    if (open && activeTab === 'security') {
+      loadSessions();
+    }
+  }, [open, activeTab, loadSessions]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +130,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
           fullName: ownerName.trim(),
           email: email.trim(),
           mobileNumber: mobileNumber.trim() || null,
+          address: address.trim() || null,
         },
       });
 
@@ -89,6 +142,46 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
       toast.error(msg);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      newPassword.length < 10 ||
+      !/[A-Z]/.test(newPassword) ||
+      !/[a-z]/.test(newPassword) ||
+      !/[0-9]/.test(newPassword) ||
+      !/[^A-Za-z0-9]/.test(newPassword)
+    ) {
+      toast.error(
+        'Strong password required: min 10 chars with uppercase, lowercase, number, and special character',
+      );
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      await apiRequest('/api/auth/change-password', {
+        method: 'POST',
+        body: { currentPassword, newPassword },
+      });
+      toast.success('Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleRevokeSession = async (sessionId: string) => {
+    try {
+      await apiRequest(`/api/auth/sessions/${sessionId}`, { method: 'DELETE' });
+      toast.success('Session signed out');
+      await loadSessions();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not revoke session');
     }
   };
 
@@ -115,206 +208,416 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
       .toUpperCase();
   };
 
+  const passChecks = [
+    { label: '10+ chars', ok: newPassword.length >= 10 },
+    { label: 'Uppercase', ok: /[A-Z]/.test(newPassword) },
+    { label: 'Lowercase', ok: /[a-z]/.test(newPassword) },
+    { label: 'Number', ok: /[0-9]/.test(newPassword) },
+    { label: 'Symbol', ok: /[^A-Za-z0-9]/.test(newPassword) },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="max-w-md w-full max-h-[92vh] overflow-y-auto p-6">
-        <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 ring-2 ring-indigo-500/20 bg-indigo-50 dark:bg-indigo-950/60">
-              <AvatarFallback className="text-base font-bold text-indigo-600 dark:text-indigo-400">
+      <DialogContent className="max-w-xl w-full max-h-[90vh] overflow-hidden p-0 gap-0 dark:bg-[#111827] dark:border-slate-800">
+        {/* Top Executive Header */}
+        <DialogHeader className="px-6 pt-5 pb-4 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-indigo-50/80 via-slate-50 to-white dark:from-indigo-950/40 dark:via-[#111827] dark:to-[#0f172a]">
+          <div className="flex items-center gap-4 pr-8">
+            <Avatar className="h-14 w-14 bg-indigo-600 dark:bg-indigo-500 text-white shadow-md shadow-indigo-500/20 ring-4 ring-white dark:ring-slate-900 shrink-0">
+              <AvatarFallback className="text-lg font-bold bg-transparent text-white">
                 {getInitials(tenant?.ownerName || user?.fullName)}
               </AvatarFallback>
             </Avatar>
-            <div className="text-left">
-              <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white">
-                {t('profileTitle')}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
-                {user?.role ? `${user.role.toUpperCase()} Account` : 'PUC Center Administrator'}
+            <div className="min-w-0 flex-1 text-left">
+              <div className="flex flex-wrap items-center gap-2">
+                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">
+                  {tenant?.businessName || t('profileTitle')}
+                </DialogTitle>
+                <Badge className="text-[10px] uppercase tracking-wide px-2 py-0 bg-indigo-600/10 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-700/60">
+                  {user?.role || 'owner'}
+                </Badge>
+                {user?.emailVerified ? (
+                  <Badge className="text-[10px] px-2 py-0 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Verified
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] px-2 py-0 text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-800 gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Unverified
+                  </Badge>
+                )}
+              </div>
+              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+                {tenant?.ownerName || user?.fullName} • {user?.email}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSave} className="space-y-4 pt-2">
-          {/* PUC Center Name */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              {t('pucCenterName')}
-            </label>
-            <Input
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="e.g. Maruti Pollution Testing Center"
-              className="text-sm font-medium"
-              required
-            />
+        {/* Tabbed Body */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as 'profile' | 'preferences' | 'security')}
+          className="flex flex-col flex-1 overflow-hidden"
+        >
+          <div className="px-6 pt-3 pb-2 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-900/40">
+            <TabsList className="grid w-full grid-cols-3 h-9">
+              <TabsTrigger value="profile" className="text-xs font-semibold gap-1.5 cursor-pointer">
+                <Building2 className="w-3.5 h-3.5" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="preferences" className="text-xs font-semibold gap-1.5 cursor-pointer">
+                <Globe className="w-3.5 h-3.5" />
+                Appearance
+              </TabsTrigger>
+              <TabsTrigger value="security" className="text-xs font-semibold gap-1.5 cursor-pointer">
+                <Shield className="w-3.5 h-3.5" />
+                Security
+              </TabsTrigger>
+            </TabsList>
           </div>
 
-          {/* Owner Name */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              {t('ownerName')}
-            </label>
-            <Input
-              value={ownerName}
-              onChange={(e) => setOwnerName(e.target.value)}
-              placeholder="e.g. Rajeshbhai Patel"
-              className="text-sm font-medium"
-              required
-            />
-          </div>
+          <div className="overflow-y-auto px-6 py-5 max-h-[55vh]">
+            {/* TAB 1: PROFILE & CENTRE DETAILS */}
+            <TabsContent value="profile" className="mt-0 space-y-4">
+              <form id="profile-details-form" onSubmit={handleSave} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="prof-center" className="text-xs font-semibold flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      {t('pucCenterName')} *
+                    </Label>
+                    <Input
+                      id="prof-center"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="e.g. Maruti PUC Center"
+                      className="h-9 text-sm"
+                      required
+                    />
+                  </div>
 
-          {/* Email Address */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              {t('emailAddress')}
-            </label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="owner@example.com"
-              className="text-sm"
-              required
-            />
-          </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="prof-owner" className="text-xs font-semibold flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      {t('ownerName')} *
+                    </Label>
+                    <Input
+                      id="prof-owner"
+                      value={ownerName}
+                      onChange={(e) => setOwnerName(e.target.value)}
+                      placeholder="e.g. Rajeshbhai Patel"
+                      className="h-9 text-sm"
+                      required
+                    />
+                  </div>
+                </div>
 
-          {/* Mobile Number (Optional) */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                {t('mobileNumber')}
-              </label>
-              <Badge variant="outline" className="text-[10px] py-0 px-1.5 text-slate-500 border-slate-300">
-                {t('optional')}
-              </Badge>
-            </div>
-            <Input
-              value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
-              placeholder="98XXXXXXXX (optional)"
-              className="text-sm font-mono"
-            />
-          </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="prof-email" className="text-xs font-semibold flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      {t('emailAddress')} *
+                    </Label>
+                    <Input
+                      id="prof-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="owner@example.com"
+                      className="h-9 text-sm"
+                      required
+                    />
+                  </div>
 
-          {/* Language Switcher Section */}
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              {t('language')}
-            </label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {(
-                [
-                  { code: 'en', label: 'English' },
-                  { code: 'gu', label: 'ગુજરાતી' },
-                  { code: 'hi', label: 'हिंदी' },
-                ] as { code: Language; label: string }[]
-              ).map((item) => (
-                <button
-                  key={item.code}
-                  type="button"
-                  onClick={() => setLang(item.code)}
-                  className={`text-xs py-1.5 px-2 rounded-lg font-medium border transition-all cursor-pointer ${
-                    lang === item.code
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                      : 'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="prof-mobile" className="text-xs font-semibold flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        {t('mobileNumber')}
+                      </Label>
+                      <span className="text-[10px] text-slate-400">{t('optional')}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="inline-flex items-center px-2.5 rounded-l-md border border-r-0 border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/70 text-xs font-mono text-slate-500">
+                        +91
+                      </span>
+                      <Input
+                        id="prof-mobile"
+                        value={mobileNumber}
+                        onChange={(e) => setMobileNumber(e.target.value)}
+                        placeholder="98XXXXXXXX"
+                        className="h-9 text-sm font-mono rounded-l-none"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-          {/* Dark / Light Mode Switcher */}
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <Moon className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              {t('theme')}
-            </label>
-            <div className="grid grid-cols-3 gap-1.5">
-              <button
-                type="button"
-                onClick={() => applyTheme('light')}
-                className={`flex items-center justify-center gap-1 text-xs py-1.5 px-2 rounded-lg font-medium border transition-all cursor-pointer ${
-                  theme === 'light'
-                    ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
-                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                <Sun className="w-3.5 h-3.5" />
-                {t('themeLight')}
-              </button>
-              <button
-                type="button"
-                onClick={() => applyTheme('dark')}
-                className={`flex items-center justify-center gap-1 text-xs py-1.5 px-2 rounded-lg font-medium border transition-all cursor-pointer ${
-                  theme === 'dark'
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                <Moon className="w-3.5 h-3.5" />
-                {t('themeDark')}
-              </button>
-              <button
-                type="button"
-                onClick={() => applyTheme('system')}
-                className={`flex items-center justify-center gap-1 text-xs py-1.5 px-2 rounded-lg font-medium border transition-all cursor-pointer ${
-                  theme === 'system'
-                    ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
-                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                <Monitor className="w-3.5 h-3.5" />
-                System
-              </button>
-            </div>
-          </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="prof-address" className="text-xs font-semibold flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    Centre Location / Address
+                  </Label>
+                  <Input
+                    id="prof-address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Shown in WhatsApp renewal reminders (e.g. Station Road, Rajkot)"
+                    className="h-9 text-sm"
+                  />
+                </div>
+              </form>
+            </TabsContent>
 
-          {/* Action Buttons */}
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+            {/* TAB 2: APPEARANCE & LANGUAGE */}
+            <TabsContent value="preferences" className="mt-0 space-y-5">
+              <div className="space-y-2.5">
+                <Label className="text-xs font-semibold flex items-center gap-1.5">
+                  <Moon className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  {t('theme')}
+                </Label>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {(
+                    [
+                      { id: 'light', label: t('themeLight'), desc: 'Crisp bright UI', icon: Sun },
+                      { id: 'dark', label: t('themeDark'), desc: 'Deep slate UI', icon: Moon },
+                      { id: 'system', label: 'System', desc: 'Sync with OS', icon: Monitor },
+                    ] as { id: ThemePreference; label: string; desc: string; icon: React.ComponentType<{ className?: string }> }[]
+                  ).map((item) => {
+                    const Icon = item.icon;
+                    const active = theme === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => applyTheme(item.id)}
+                        className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          active
+                            ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="text-xs font-semibold mt-0.5">{item.label}</span>
+                        <span
+                          className={`text-[10px] ${
+                            active ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'
+                          }`}
+                        >
+                          {item.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+                <Label className="text-xs font-semibold flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  {t('language')}
+                </Label>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {(
+                    [
+                      { code: 'en', label: 'English', sub: 'Default UI' },
+                      { code: 'gu', label: 'ગુજરાતી', sub: 'Gujarati UI' },
+                      { code: 'hi', label: 'हिंदी', sub: 'Hindi UI' },
+                    ] as { code: Language; label: string; sub: string }[]
+                  ).map((item) => {
+                    const active = lang === item.code;
+                    return (
+                      <button
+                        key={item.code}
+                        type="button"
+                        onClick={() => setLang(item.code)}
+                        className={`flex flex-col items-start gap-0.5 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          active
+                            ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
+                        }`}
+                      >
+                        <span className="text-xs font-semibold">{item.label}</span>
+                        <span
+                          className={`text-[10px] ${
+                            active ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'
+                          }`}
+                        >
+                          {item.sub}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* TAB 3: SECURITY & ACTIVE SESSIONS */}
+            <TabsContent value="security" className="mt-0 space-y-5">
+              <form id="profile-password-form" onSubmit={handleChangePassword} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    Update Account Password
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords((v) => !v)}
+                    className="text-[11px] font-medium text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    {showPasswords ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    {showPasswords ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Input
+                    type={showPasswords ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Current password"
+                    className="h-9 text-xs"
+                    required
+                  />
+                  <Input
+                    type={showPasswords ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New strong password (10+ chars)"
+                    className="h-9 text-xs"
+                    required
+                    minLength={10}
+                  />
+                </div>
+
+                {newPassword.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {passChecks.map((c) => (
+                      <span
+                        key={c.label}
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${
+                          c.ok
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+                            : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                        }`}
+                      >
+                        {c.ok ? '✓ ' : '• '}
+                        {c.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </form>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold flex items-center gap-1.5">
+                    <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    Active Login Sessions ({sessions.length})
+                  </Label>
+                  <span className="text-[11px] text-slate-400">30-day session</span>
+                </div>
+
+                {loadingSessions ? (
+                  <p className="text-xs text-slate-400 py-2">Loading active sessions...</p>
+                ) : sessions.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-2">No active sessions found.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    {sessions.map((s) => (
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
+                            <span className="truncate max-w-[230px]">
+                              {s.user_agent || 'Web Session'}
+                            </span>
+                            {s.isCurrent && (
+                              <Badge className="text-[9px] px-1.5 py-0 bg-emerald-600 text-white">
+                                This Device
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                            IP: {s.ip_address || '—'} • Expires {s.expires_at?.slice(0, 10)}
+                          </div>
+                        </div>
+                        {!s.isCurrent && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => handleRevokeSession(s.id)}
+                            title="Revoke session"
+                            className="h-7 w-7 text-slate-400 hover:text-red-600 cursor-pointer shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </div>
+        </Tabs>
+
+        {/* Sticky Footer */}
+        <div className="px-6 py-3.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="gap-1.5 text-xs text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-900/60 dark:hover:bg-red-950/40 cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            {loggingOut ? t('loggingOut') : t('logout')}
+          </Button>
+
+          <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="destructive"
+              variant="outline"
               size="sm"
-              onClick={handleLogout}
-              disabled={loggingOut}
-              className="gap-1.5"
+              onClick={() => onOpenChange(false)}
+              className="text-xs cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              {loggingOut ? t('loggingOut') : t('logout')}
+              {t('cancel')}
             </Button>
 
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => onOpenChange(false)}
-              >
-                {t('cancel')}
-              </Button>
+            {activeTab === 'profile' && (
               <Button
                 type="submit"
-                variant="default"
+                form="profile-details-form"
                 size="sm"
                 disabled={saving}
-                className="gap-1.5"
+                className="gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 {saving ? t('saving') : t('saveProfile')}
               </Button>
-            </div>
+            )}
+
+            {activeTab === 'security' && (
+              <Button
+                type="submit"
+                form="profile-password-form"
+                size="sm"
+                disabled={changingPassword}
+                className="gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 cursor-pointer"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                {changingPassword ? 'Updating...' : 'Update Password'}
+              </Button>
+            )}
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
