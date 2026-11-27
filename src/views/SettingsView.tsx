@@ -800,7 +800,7 @@ export function SettingsView() {
                 )}
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
-                Automatic 60s scheduler dispatches PUC &amp; Insurance reminders at your configured IST times ({(waSummary?.deliveryTimes || deliveryTimes).join(', ')}).
+                Syncs every 4 hours and dispatches PUC &amp; Insurance reminders at your exact configured IST times ({(waSummary?.deliveryTimes || deliveryTimes).join(', ')}).
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
