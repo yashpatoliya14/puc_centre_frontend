@@ -18,6 +18,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { GlobalLoader } from '../components/ui/GlobalLoader';
 import { apiRequest } from '../lib/api';
 import { useI18n } from '../context/I18nContext';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
@@ -373,16 +374,7 @@ export function SettingsView() {
   });
 
   if (loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-zinc-100 dark:bg-zinc-900 rounded w-1/4" />
-        <div className="h-28 bg-zinc-100 dark:bg-zinc-900 rounded-xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="h-72 bg-zinc-100 dark:bg-zinc-900 rounded-xl" />
-          <div className="h-72 bg-zinc-100 dark:bg-zinc-900 rounded-xl" />
-        </div>
-      </div>
-    );
+    return <GlobalLoader fullScreen={false} label="Loading settings..." />;
   }
 
   return (

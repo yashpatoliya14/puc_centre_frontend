@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { I18nProvider } from './context/I18nContext';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { AppShell, type NavRoute } from './components/layout/AppShell';
+import { GlobalLoader } from './components/ui/GlobalLoader';
 import { DashboardView } from './views/DashboardView';
 import { SettingsView } from './views/SettingsView';
 import { AdminView } from './views/AdminView';
 
 function WorkspaceRouter() {
-  const { isAuthenticated, loadingInitial, theme, user } = useAuth();
+  const { isAuthenticated, loadingInitial, theme, user, tenant } = useAuth();
   const [route, setRoute] = useState<NavRoute>('dashboard');
 
   const paletteMode = theme === 'light' ? 'light' : 'dark';
 
+  useEffect(() => {
+    document.title = tenant?.businessName?.trim() || 'PUC Centre';
+  }, [tenant?.businessName]);
+
   if (loadingInitial) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-zinc-300 dark:border-zinc-800 border-t-blue-600 animate-spin" />
-      </div>
-    );
+    return <GlobalLoader label="Loading workspace..." />;
   }
 
   if (!isAuthenticated) {

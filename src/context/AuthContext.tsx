@@ -74,7 +74,22 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function readStoredTheme(): ThemePreference {
+  try {
+    const saved = localStorage.getItem('pucflow_theme');
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
+  } catch {
+    // ignore storage access issues
+  }
+  return 'dark';
+}
+
 function resolveAndApplyDomTheme(pref: ThemePreference) {
+  try {
+    localStorage.setItem('pucflow_theme', pref);
+  } catch {
+    // ignore storage access issues
+  }
   const root = document.documentElement;
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   const shouldBeDark = pref === 'dark' || (pref === 'system' && prefersDark);
@@ -88,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [tenant, setTenant] = useState<AuthTenant | null>(null);
   const [runtime, setRuntime] = useState<RuntimeInfo | null>(null);
-  const [theme, setTheme] = useState<ThemePreference>('dark');
+  const [theme, setTheme] = useState<ThemePreference>(readStoredTheme);
   const [loadingInitial, setLoadingInitial] = useState(true);
 
   useEffect(() => {

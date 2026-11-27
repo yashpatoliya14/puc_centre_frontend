@@ -27,14 +27,16 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const getInitials = (name?: string) => {
-    if (!name) return 'PC';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
+    const trimmed = name?.trim();
+    if (!trimmed) return 'PC';
+    const parts = trimmed.split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return trimmed.slice(0, 2).toUpperCase();
   };
+
+  const centreName = tenant?.businessName?.trim() || 'PUC Centre';
 
   const navItems = [
     {
@@ -83,15 +85,12 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
         <div className="p-4 border-b border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-9 w-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-sm tracking-tight shrink-0 shadow-xs">
-              PF
+              {getInitials(centreName)}
             </div>
             <div className="min-w-0">
-              <div className="font-bold text-sm text-zinc-950 dark:text-white leading-none truncate">
-                {t('appTitle')}
+              <div className="font-bold text-sm text-zinc-950 dark:text-white leading-tight truncate">
+                {centreName}
               </div>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-1">
-                {tenant?.businessName || 'PUC Center Platform'}
-              </p>
             </div>
           </div>
           <button
@@ -175,7 +174,7 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-3">
               <span className="text-sm font-semibold text-zinc-950 dark:text-white">
                 {activeRoute === 'dashboard'
                   ? t('navDashboard')
@@ -183,9 +182,8 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
                   ? 'Admin Panel'
                   : t('navSettings')}
               </span>
-              <span className="text-zinc-300 dark:text-zinc-700">•</span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-500" />
+                <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-500" />
                 {t('liveStatus')}
               </span>
             </div>
