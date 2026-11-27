@@ -383,9 +383,6 @@ export function PucScannerPanel({
                 PDF & Image Bulk Enabled
               </Badge>
             </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              Upload single or multiple Parivahan PDFs and certificate photos to extract details automatically
-            </p>
           </div>
         </div>
       </div>

@@ -544,127 +544,99 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
   return (
     <div className="space-y-6 pb-12">
-      {/* 1. CLEAN EXECUTIVE PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80 dark:border-zinc-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Vehicles & Reminders
-            </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400">
-              {stats.total} total
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            Track vehicle PUC certificates, manage expiry warnings, and dispatch WhatsApp renewal reminders.
-          </p>
-        </div>
+      {/* 1. COMPACT ACTION BAR */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={loadData}
+          title={t('refresh')}
+          className="h-9 gap-1.5 text-xs font-medium cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadData}
-            title={t('refresh')}
-            className="h-9 gap-1.5 text-xs font-medium cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setBulkModalOpen(true)}
+          className="h-9 gap-1.5 font-semibold text-xs border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-50/60 dark:hover:bg-blue-950/40 cursor-pointer"
+        >
+          <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+          <span>Bulk Upload (PDF / Image)</span>
+        </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setBulkModalOpen(true)}
-            className="h-9 gap-1.5 font-semibold text-xs border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-50/60 dark:hover:bg-blue-950/40 cursor-pointer"
-          >
-            <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span>Bulk Upload (PDF / Image)</span>
-          </Button>
-
-          <Button
-            onClick={openCreateModal}
-            size="sm"
-            className="h-9 gap-1.5 font-semibold text-xs bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 shadow-xs cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            {t('registerCustomer')}
-          </Button>
-        </div>
+        <Button
+          onClick={openCreateModal}
+          size="sm"
+          className="h-9 gap-1.5 font-semibold text-xs bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 shadow-xs cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          {t('registerCustomer')}
+        </Button>
       </div>
 
-      {/* 2. REFINED MINIMALIST KPI CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 2. COMPACT KPI STRIP */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {/* Card 1: Total Registered */}
         <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <CardContent className="px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 block truncate">
                 {t('totalCustomers')}
               </span>
-              <Users className="w-4 h-4 text-zinc-400" />
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">
+                {stats.total}
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
-              {stats.total}
-            </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-              Active customer profiles
-            </p>
+            <Users className="w-4 h-4 text-zinc-400 shrink-0" />
           </CardContent>
         </Card>
 
         {/* Card 2: Due in 7 Days */}
         <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+          <CardContent className="px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400 block truncate">
                 {t('dueSoon')}
               </span>
-              <Clock className="w-4 h-4 text-blue-500" />
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400 leading-tight">
+                {stats.pucExpiring}
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400 mt-2">
-              {stats.pucExpiring}
-            </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-              Expiring in next 7 days
-            </p>
+            <Clock className="w-4 h-4 text-blue-500 shrink-0" />
           </CardContent>
         </Card>
 
         {/* Card 3: Expired / Overdue */}
         <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-red-600 dark:text-red-400">
+          <CardContent className="px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-red-600 dark:text-red-400 block truncate">
                 {t('filterExpired')}
               </span>
-              <AlertCircle className="w-4 h-4 text-red-500" />
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-red-600 dark:text-red-400 leading-tight">
+                {stats.expiredCount}
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-red-600 dark:text-red-400 mt-2">
-              {stats.expiredCount}
-            </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-              WhatsApp alert needed
-            </p>
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
           </CardContent>
         </Card>
 
         {/* Card 4: Insured Coverage */}
         <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <CardContent className="px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 block truncate">
                 Insured Vehicles
               </span>
-              <ShieldCheck className="w-4 h-4 text-zinc-400" />
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">
+                {stats.insuredTotal}
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
-              {stats.insuredTotal}
-            </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-              {stats.insExpiring} policies due soon
-            </p>
+            <ShieldCheck className="w-4 h-4 text-zinc-400 shrink-0" />
           </CardContent>
         </Card>
       </div>
@@ -1103,11 +1075,11 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     </Badge>
                   )}
                 </div>
-                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  {editingCustomer
-                    ? 'Update customer profile, PUC validity, and insurance renewal dates'
-                    : 'Upload a Parivahan PDF or certificate image to auto-fill, or enter details manually'}
-                </DialogDescription>
+                {editingCustomer && (
+                  <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Update customer profile, PUC validity, and insurance renewal dates
+                  </DialogDescription>
+                )}
               </div>
             </div>
           </DialogHeader>
@@ -1480,19 +1452,15 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             </div>
 
             {/* Sticky Footer */}
-            <DialogFooter className="px-5 sm:px-6 py-3.5 border-t border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/90 dark:bg-[#0e0e11] flex flex-row items-center justify-between gap-3 shrink-0 sm:space-x-0">
-              <div className="hidden sm:flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
-                <span>WhatsApp renewal reminders auto-scheduled</span>
-              </div>
-              <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto">
+            <DialogFooter className="px-5 sm:px-6 py-3.5 border-t border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/90 dark:bg-[#0e0e11] flex flex-row items-center justify-end gap-3.5 shrink-0 sm:space-x-0">
+              <div className="flex items-center justify-end gap-3.5 w-full sm:w-auto">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setModalOpen(false)}
                   disabled={submitting}
-                  className="h-9 px-4 text-xs font-medium cursor-pointer"
+                  className="h-9 px-5 text-xs font-medium cursor-pointer"
                 >
                   {t('cancel')}
                 </Button>
@@ -1532,9 +1500,6 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 <DialogTitle className="text-base sm:text-lg font-bold">
                   Bulk Register Customers (PDF & Images)
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  Drop multiple Parivahan PDF certificates or images at once to auto-extract and register all customers in 1 click.
-                </DialogDescription>
               </div>
             </div>
           </DialogHeader>

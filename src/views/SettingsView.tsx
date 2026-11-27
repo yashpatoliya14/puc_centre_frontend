@@ -353,8 +353,6 @@ export function SettingsView() {
     }
   };
 
-  const totalSchedulePoints = remindDaysBefore.length + remindDaysAfter.length;
-
   const filteredScheduleItems = scheduleItems.filter((item) => {
     if (ruleFilter === 'due_today' && item.daysUntilScheduled !== 0) return false;
     if (ruleFilter !== 'all' && ruleFilter !== 'due_today' && item.ruleKey !== ruleFilter) return false;
@@ -399,9 +397,6 @@ export function SettingsView() {
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
               {t('settingsTitle')}
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Configure WhatsApp reminders, daily delivery limits, frequency, and expiry schedule.
-            </p>
           </div>
         </div>
 
@@ -451,25 +446,14 @@ export function SettingsView() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-between lg:justify-end">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-zinc-600 dark:text-zinc-300">
-              <span className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700 font-mono">
-                {frequencyCount} {frequencyCount === 1 ? 'time' : 'times'}/day per customer
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700">
-                {totalSchedulePoints} schedule rules
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 pl-2 border-l border-zinc-200 dark:border-zinc-800">
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                {messagesEnabled ? 'On' : 'Off'}
-              </span>
-              <Switch
-                checked={messagesEnabled}
-                onCheckedChange={setMessagesEnabled}
-              />
-            </div>
+          <div className="flex items-center gap-2 justify-end">
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              {messagesEnabled ? 'On' : 'Off'}
+            </span>
+            <Switch
+              checked={messagesEnabled}
+              onCheckedChange={setMessagesEnabled}
+            />
           </div>
         </CardContent>
       </Card>
@@ -483,9 +467,6 @@ export function SettingsView() {
               <Gauge className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               Delivery Frequency &amp; Timing
             </CardTitle>
-            <CardDescription className="text-xs">
-              Applied per eligible customer based on your selected frequency and IST clock times (no daily limit).
-            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-5 space-y-5 flex-1">
             {/* Delivery Frequency + Customer Clock Time Slots */}
@@ -562,9 +543,6 @@ export function SettingsView() {
               <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               {t('cadenceTitle')}
             </CardTitle>
-            <CardDescription className="text-xs">
-              {t('cadenceDesc')}
-            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-5 space-y-4 flex-1">
             {/* Days Before Expiry */}
@@ -729,9 +707,6 @@ export function SettingsView() {
                 <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 WhatsApp Message Template Preview
               </CardTitle>
-              <CardDescription className="text-xs mt-0.5">
-                Read-only preview of the official Meta WhatsApp templates sent to vehicle owners.
-              </CardDescription>
             </div>
             <Badge variant="secondary" className="text-[11px] font-medium">
               Meta Approved Templates
@@ -799,9 +774,6 @@ export function SettingsView() {
                   </Badge>
                 )}
               </CardTitle>
-              <CardDescription className="text-xs mt-0.5">
-                Syncs every 4 hours and dispatches PUC &amp; Insurance reminders at your exact configured IST times ({(waSummary?.deliveryTimes || deliveryTimes).join(', ')}).
-              </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Button
