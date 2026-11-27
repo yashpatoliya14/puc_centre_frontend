@@ -129,13 +129,23 @@ export function AppShell({ activeRoute, onNavigate, children }: AppShellProps) {
         {/* Status Indicator & Bottom-Left Profile Bar */}
         <div className="border-t border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/60 dark:bg-[#09090b] p-2 space-y-2">
           {/* Subtle Clean WhatsApp Status Pill */}
-          <div className="px-2.5 py-1.5 flex items-center gap-2 rounded-lg bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800 text-[11px] text-zinc-700 dark:text-zinc-300 font-medium">
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-500" />
-            </span>
-            <span className="truncate">WhatsApp Engine Active</span>
-          </div>
+          {user?.role !== 'admin' && (
+            <div className="px-2.5 py-1.5 flex items-center gap-2 rounded-lg bg-white dark:bg-[#111113] border border-zinc-200/80 dark:border-zinc-800 text-[11px] text-zinc-700 dark:text-zinc-300 font-medium">
+              <span className="relative flex h-2 w-2 shrink-0">
+                {tenant?.messagesEnabled !== false ? (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-500" />
+                  </>
+                ) : (
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-400" />
+                )}
+              </span>
+              <span className="truncate">
+                {tenant?.messagesEnabled !== false ? 'WhatsApp Engine Active' : 'WhatsApp Engine Paused'}
+              </span>
+            </div>
+          )}
 
           {/* User Profile Card Button */}
           <button

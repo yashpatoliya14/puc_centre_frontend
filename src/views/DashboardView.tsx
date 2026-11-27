@@ -50,7 +50,13 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { SelectInput } from '../components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
 import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
@@ -214,11 +220,23 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [custList, settRes] = await Promise.all([
-        apiRequest<{ items: CustomerItem[] }>('/api/customers?pageSize=250'),
+      const [firstPage, settRes] = await Promise.all([
+        apiRequest<{ items: CustomerItem[]; pagination?: { totalPages: number } }>('/api/customers?page=1&pageSize=500'),
         apiRequest<{ simplified?: SettingsSummary }>('/api/settings').catch(() => null),
       ]);
-      setCustomers(custList.items || []);
+      let allItems = firstPage.items || [];
+      const totalPagesCount = firstPage.pagination?.totalPages || 1;
+      if (totalPagesCount > 1) {
+        const restPages = await Promise.all(
+          Array.from({ length: totalPagesCount - 1 }, (_, idx) =>
+            apiRequest<{ items: CustomerItem[] }>(`/api/customers?page=${idx + 2}&pageSize=500`),
+          ),
+        );
+        for (const p of restPages) {
+          if (Array.isArray(p.items)) allItems = allItems.concat(p.items);
+        }
+      }
+      setCustomers(allItems);
       if (settRes?.simplified) {
         setSettings(settRes.simplified);
       }
@@ -305,16 +323,25 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   const handleScanAutoFill = (extracted: ExtractedPucData) => {
     if (extracted.regNumber) setRegNumber(extracted.regNumber);
     if (extracted.fullName) setFullName(extracted.fullName);
-    if (extracted.mobileNumber) setMobileNumber(extracted.mobileNumber);
+    if (extracted.mobileNumber) {
+      const digits = extracted.mobileNumber.replace(/\D/g, '');
+      setMobileNumber(digits.length >= 10 ? digits.slice(-10) : extracted.mobileNumber);
+    }
     if (extracted.fuelType) setFuelType(extracted.fuelType);
-    if (extracted.vehicleType) setVehicleType(extracted.vehicleType);
+    if (extracted.vehicleType) setVehicleType(normalizeFormVehicleType(extracted.vehicleType));
     if (extracted.makeModel) setMakeModel(extracted.makeModel);
     if (extracted.issueDate) setIssueDate(extracted.issueDate);
     if (extracted.expiryDate) setExpiryDate(extracted.expiryDate);
     if (extracted.certificateNumber) setCertNumber(extracted.certificateNumber);
     if (extracted.insuranceCompany) {
       setHasInsurance(true);
-      setInsuranceCompany(extracted.insuranceCompany);
+      if (COMMON_INSURERS.includes(extracted.insuranceCompany)) {
+        setInsuranceCompany(extracted.insuranceCompany);
+        setCustomCompany('');
+      } else {
+        setInsuranceCompany('Other');
+        setCustomCompany(extracted.insuranceCompany);
+      }
       if (extracted.insuranceExpiry) {
         setInsExpiryDate(extracted.insuranceExpiry);
       }
@@ -342,6 +369,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       showFormError('Both PUC Issue Date and Expiry Date are required');
       return;
     }
+    if (expiryDate < issueDate) {
+      showFormError('PUC Expiry Date cannot be earlier than Issue Date');
+      return;
+    }
 
     let resolvedCompany = insuranceCompany;
     if (hasInsurance) {
@@ -358,6 +389,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       }
       if (!insStartDate || !insExpiryDate) {
         showFormError('Policy Start Date and Expiry Date are compulsory');
+        return;
+      }
+      if (insExpiryDate < insStartDate) {
+        showFormError('Insurance Expiry Date cannot be earlier than Policy Start Date');
         return;
       }
     }
@@ -528,6 +563,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
   // Paginated customers
   const totalPages = Math.ceil(filteredCustomers.length / rowsPerPage) || 1;
+  useEffect(() => {
+    if (page >= totalPages) {
+      setPage(Math.max(0, totalPages - 1));
+    }
+  }, [page, totalPages]);
+
   const paginatedCustomers = useMemo(() => {
     return filteredCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   }, [filteredCustomers, page, rowsPerPage]);
@@ -785,11 +826,15 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               </TableRow>
             ) : (
               paginatedCustomers.map((c) => {
-                const isPucExpired = c.certificate?.status === 'expired';
-                const isPucExpSoon = c.certificate?.status === 'expiring_soon';
+                const certStatus = c.certificate?.status || c.certificateStatus;
+                const isPucExpired = certStatus === 'expired';
+                const isPucExpToday = certStatus === 'expiring_today';
+                const isPucExpSoon = certStatus === 'expiring_soon';
+                const isPucRenewed = certStatus === 'renewed';
                 const hasIns = Boolean(c.insurance && c.insurance.policyNumber);
                 const isInsExpired = c.insurance?.status === 'expired';
                 const isInsExpSoon = c.insurance?.status === 'expiring_soon';
+                const formattedMobile = c.mobileNumber?.startsWith('+') ? c.mobileNumber : `+91 ${c.mobileNumber}`;
 
                 return (
                   <TableRow key={c.id}>
@@ -807,7 +852,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           </p>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="font-mono text-[11px] text-zinc-500">
-                              +91 {c.mobileNumber}
+                              {formattedMobile}
                             </span>
                             <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-500 font-semibold">
                               {c.language || 'GU'}
@@ -821,7 +866,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <TableCell>
                       <div className="space-y-1">
                         <IndianNumberPlate
-                          regNumber={c.vehicle?.registrationNumber || 'GJ01AB1234'}
+                          regNumber={c.vehicle?.registrationNumber || c.vehicleRegistrationNumber || ''}
                         />
                         <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                           {c.vehicle?.vehicleType || '2-Wheeler'} • {c.vehicle?.fuelType || 'Petrol'}
@@ -839,12 +884,20 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           <span className="inline-flex items-center text-[10px] font-semibold text-red-600 dark:text-red-400">
                             Expired ({Math.abs(c.certificate?.daysUntilExpiry || 0)}d ago)
                           </span>
+                        ) : isPucExpToday ? (
+                          <span className="inline-flex items-center text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                            Expires today
+                          </span>
                         ) : isPucExpSoon ? (
                           <span className="inline-flex items-center text-[10px] font-semibold text-blue-600 dark:text-blue-400">
                             Due in {c.certificate?.daysUntilExpiry}d
                           </span>
+                        ) : isPucRenewed ? (
+                          <span className="inline-flex items-center text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
+                            Renewed
+                          </span>
                         ) : (
-                          <span className="inline-flex items-center text-[10px] font-semibold text-blue-600 dark:text-blue-400">
+                          <span className="inline-flex items-center text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                             Active
                           </span>
                         )}
@@ -970,10 +1023,14 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
           </Card>
         ) : (
           paginatedCustomers.map((c) => {
-            const isPucExpired = c.certificate?.status === 'expired';
-            const isPucExpSoon = c.certificate?.status === 'expiring_soon';
+            const certStatus = c.certificate?.status || c.certificateStatus;
+            const isPucExpired = certStatus === 'expired';
+            const isPucExpToday = certStatus === 'expiring_today';
+            const isPucExpSoon = certStatus === 'expiring_soon';
+            const isPucRenewed = certStatus === 'renewed';
             const hasIns = Boolean(c.insurance && c.insurance.policyNumber);
             const isInsExpSoon = c.insurance?.status === 'expiring_soon';
+            const formattedMobile = c.mobileNumber?.startsWith('+') ? c.mobileNumber : `+91 ${c.mobileNumber}`;
 
             return (
               <Card key={c.id} className="p-4 space-y-3">
@@ -987,7 +1044,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                         {c.fullName}
                       </h4>
                       <p className="text-[11px] font-mono text-zinc-500">
-                        +91 {c.mobileNumber}
+                        {formattedMobile}
                       </p>
                     </div>
                   </div>
@@ -1015,19 +1072,27 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 {/* Plate and Expiry Status */}
                 <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
                   <IndianNumberPlate
-                    regNumber={c.vehicle?.registrationNumber || 'GJ01AB1234'}
+                    regNumber={c.vehicle?.registrationNumber || c.vehicleRegistrationNumber || ''}
                   />
                   <div>
                     {isPucExpired ? (
                       <span className="text-[10px] font-semibold text-red-600">
                         Expired ({Math.abs(c.certificate?.daysUntilExpiry || 0)}d ago)
                       </span>
+                    ) : isPucExpToday ? (
+                      <span className="text-[10px] font-semibold text-amber-600">
+                        Expires today
+                      </span>
                     ) : isPucExpSoon ? (
                       <span className="text-[10px] font-semibold text-blue-600">
                         Due in {c.certificate?.daysUntilExpiry}d
                       </span>
+                    ) : isPucRenewed ? (
+                      <span className="text-[10px] font-semibold text-indigo-600">
+                        Renewed
+                      </span>
                     ) : (
-                      <span className="text-[10px] font-semibold text-blue-600">
+                      <span className="text-[10px] font-semibold text-emerald-600">
                         Active
                       </span>
                     )}
@@ -1191,16 +1256,17 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <Label htmlFor="veh-type" className="text-xs font-semibold">
                       Vehicle Category
                     </Label>
-                    <SelectInput
-                      id="veh-type"
-                      value={vehicleType}
-                      onChange={(e) => setVehicleType(e.target.value)}
-                    >
-                      <option value="2-Wheeler">2-Wheeler (Motorcycle/Scooter)</option>
-                      <option value="4-Wheeler">4-Wheeler (Car/Jeep/SUV)</option>
-                      <option value="Commercial">Commercial / Transport</option>
-                      <option value="Other">Other Vehicle</option>
-                    </SelectInput>
+                    <Select value={vehicleType} onValueChange={setVehicleType}>
+                      <SelectTrigger id="veh-type">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2-Wheeler">2-Wheeler (Motorcycle/Scooter)</SelectItem>
+                        <SelectItem value="4-Wheeler">4-Wheeler (Car/Jeep/SUV)</SelectItem>
+                        <SelectItem value="Commercial">Commercial / Transport</SelectItem>
+                        <SelectItem value="Other">Other Vehicle</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -1209,16 +1275,17 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <Label htmlFor="veh-fuel" className="text-xs font-semibold">
                       Fuel Type
                     </Label>
-                    <SelectInput
-                      id="veh-fuel"
-                      value={fuelType}
-                      onChange={(e) => setFuelType(e.target.value)}
-                    >
-                      <option value="Petrol">Petrol</option>
-                      <option value="Diesel">Diesel</option>
-                      <option value="CNG">CNG</option>
-                      <option value="Electric">Electric / EV</option>
-                    </SelectInput>
+                    <Select value={fuelType} onValueChange={setFuelType}>
+                      <SelectTrigger id="veh-fuel">
+                        <SelectValue placeholder="Select fuel" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Petrol">Petrol</SelectItem>
+                        <SelectItem value="Diesel">Diesel</SelectItem>
+                        <SelectItem value="CNG">CNG</SelectItem>
+                        <SelectItem value="Electric">Electric / EV</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
@@ -1349,17 +1416,18 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                         <Label htmlFor="ins-company" className="text-xs font-semibold">
                           Insurance Company <span className="text-red-500">*</span>
                         </Label>
-                        <SelectInput
-                          id="ins-company"
-                          value={insuranceCompany}
-                          onChange={(e) => setInsuranceCompany(e.target.value)}
-                        >
-                          {COMMON_INSURERS.map((comp) => (
-                            <option key={comp} value={comp}>
-                              {comp}
-                            </option>
-                          ))}
-                        </SelectInput>
+                        <Select value={insuranceCompany} onValueChange={setInsuranceCompany}>
+                          <SelectTrigger id="ins-company">
+                            <SelectValue placeholder="Select insurer" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COMMON_INSURERS.map((comp) => (
+                              <SelectItem key={comp} value={comp}>
+                                {comp}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -1383,15 +1451,16 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                         <Label htmlFor="ins-policy-type" className="text-xs font-semibold">
                           Policy Type
                         </Label>
-                        <SelectInput
-                          id="ins-policy-type"
-                          value={policyType}
-                          onChange={(e) => setPolicyType(e.target.value)}
-                        >
-                          <option value="Comprehensive">Comprehensive</option>
-                          <option value="Third Party">Third Party</option>
-                          <option value="Own Damage">Own Damage</option>
-                        </SelectInput>
+                        <Select value={policyType} onValueChange={setPolicyType}>
+                          <SelectTrigger id="ins-policy-type">
+                            <SelectValue placeholder="Select policy type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Comprehensive">Comprehensive</SelectItem>
+                            <SelectItem value="Third Party">Third Party</SelectItem>
+                            <SelectItem value="Own Damage">Own Damage</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="space-y-1.5">
@@ -1539,7 +1608,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                   <CheckCircle2 className="w-3.5 h-3.5 text-blue-300" />
                 </h4>
                 <p className="text-[10px] text-white/80 font-mono">
-                  +91 {whatsappCustomer?.mobileNumber}
+                  {whatsappCustomer?.mobileNumber?.startsWith('+')
+                    ? whatsappCustomer.mobileNumber
+                    : `+91 ${whatsappCustomer?.mobileNumber || ''}`}
                 </p>
               </div>
             </div>

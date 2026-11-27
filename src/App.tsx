@@ -19,6 +19,14 @@ function WorkspaceRouter() {
     document.title = tenant?.businessName?.trim() || 'PUC Centre';
   }, [tenant?.businessName]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setRoute('dashboard');
+    } else if (route === 'admin' && user?.role !== 'admin') {
+      setRoute('dashboard');
+    }
+  }, [isAuthenticated, user?.id, user?.role, route]);
+
   if (loadingInitial) {
     return <GlobalLoader label="Loading workspace..." />;
   }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   MessageSquare,
   Clock,
@@ -306,28 +306,32 @@ export function SettingsView() {
     });
   };
 
+  const refreshLogsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshLogsTimerRef.current) clearTimeout(refreshLogsTimerRef.current);
+    };
+  }, []);
+
   const handleSave = async () => {
     const safeFreqCount = Math.min(12, Math.max(1, Number(frequencyCount) || 1));
     const safeTimes = Array.from(
       { length: safeFreqCount },
       (_, idx) => deliveryTimes[idx] || DEFAULT_SLOT_TIMES[idx % DEFAULT_SLOT_TIMES.length],
     );
+    const uniqueTimes = Array.from(new Set(safeTimes));
 
     setSaving(true);
     try {
       const payload: Record<string, unknown> = {
-        callsEnabled: false,
-        autoCallOnRegistration: false,
         messagesEnabled,
-        maxCallsPerCustomer: 1,
         retryIntervalMinutes: 60,
         maxMessagesPerCustomer: 3,
         dailyMessageLimit: 10000,
-        deliveryFrequency: `${safeFreqCount}x_daily`,
-        deliveryFrequencyCount: safeFreqCount,
-        deliveryTimes: safeTimes,
-        callingWindowStart: '09:30',
-        callingWindowEnd: '19:30',
+        deliveryFrequency: `${uniqueTimes.length}x_daily`,
+        deliveryFrequencyCount: uniqueTimes.length,
+        deliveryTimes: uniqueTimes,
         remindDaysBefore,
         remindDaysAfter,
         businessName: businessName.trim() || undefined,
@@ -342,7 +346,8 @@ export function SettingsView() {
 
       toast.success('Settings saved successfully');
       await loadSettings();
-      setTimeout(() => {
+      if (refreshLogsTimerRef.current) clearTimeout(refreshLogsTimerRef.current);
+      refreshLogsTimerRef.current = setTimeout(() => {
         loadWhatsAppLogs();
       }, 1500);
     } catch (err) {

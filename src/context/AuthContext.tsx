@@ -24,6 +24,7 @@ export interface AuthTenant {
   logoUrl: string | null;
   timezone: string;
   automationEnabled: boolean;
+  messagesEnabled?: boolean;
   defaultLanguage: string;
   defaultCallTime: string;
   callingWindowStart: string;

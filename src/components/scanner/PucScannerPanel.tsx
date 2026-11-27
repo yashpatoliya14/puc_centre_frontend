@@ -77,6 +77,8 @@ function tryDecodeQrFromImage(file: File): Promise<string | null> {
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: 'attemptBoth',
           });
+          canvas.width = 0;
+          canvas.height = 0;
           return code?.data || null;
         };
 
@@ -173,7 +175,9 @@ export function PucScannerPanel({
     file: File,
   ): Promise<{ data: ExtractedPucData | null; error?: string }> => {
     const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
-    const isImage = file.type.startsWith('image/');
+    const isImage =
+      file.type.startsWith('image/') ||
+      /\.(jpe?g|png|webp|bmp|gif)$/i.test(file.name);
 
     if (isPdf) {
       try {
@@ -265,7 +269,8 @@ export function PucScannerPanel({
       (f) =>
         f.name.toLowerCase().endsWith('.pdf') ||
         f.type === 'application/pdf' ||
-        f.type.startsWith('image/'),
+        f.type.startsWith('image/') ||
+        /\.(jpe?g|png|webp|bmp|gif)$/i.test(f.name),
     );
 
     if (files.length === 0) {
@@ -343,17 +348,32 @@ export function PucScannerPanel({
         registered: number;
         updated: number;
         failed: number;
+        errors?: Array<{ index: number; regNumber: string; error: string }>;
+        results?: Array<{ regNumber: string; status: 'registered' | 'renewed' | 'failed' }>;
       }>('/api/scanner/bulk-register', {
         method: 'POST',
         body: { certificates: bulkList },
       });
 
-      if (res.ok) {
-        toast.success(`Registered ${res.registered + res.updated} customers & vehicles!`, {
+      const succeededCount = (res.registered || 0) + (res.updated || 0);
+      if (succeededCount > 0 && (!res.failed || res.failed === 0)) {
+        toast.success(`Registered ${succeededCount} customers & vehicles!`, {
           description: `${res.registered} new profiles created, ${res.updated} renewals attached.`,
         });
         setBulkList([]);
         if (onBulkComplete) onBulkComplete();
+      } else if (succeededCount > 0 && res.failed > 0) {
+        const failedIndices = new Set((res.errors || []).map((e) => e.index));
+        const firstErr = res.errors?.[0]?.error || 'Some vehicles could not be registered';
+        toast.warning(`Registered ${succeededCount} vehicle(s), ${res.failed} failed`, {
+          description: firstErr,
+        });
+        setBulkList((prev) => prev.filter((_, idx) => failedIndices.has(idx)));
+      } else {
+        const firstErr = res.errors?.[0]?.error || 'No certificates could be registered';
+        toast.error(`Bulk registration failed (${res.failed || bulkList.length} failed)`, {
+          description: firstErr,
+        });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Bulk registration failed';

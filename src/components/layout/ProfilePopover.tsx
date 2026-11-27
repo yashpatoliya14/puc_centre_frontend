@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   User,
   Building2,
@@ -89,8 +89,10 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
     }
   }, []);
 
+  const wasOpenRef = useRef(false);
+
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpenRef.current) {
       setBusinessName(tenant?.businessName || '');
       setOwnerName(tenant?.ownerName || user?.fullName || '');
       setEmail(user?.email || tenant?.email || '');
@@ -101,6 +103,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
       setShowPasswords(false);
       setActiveTab('profile');
     }
+    wasOpenRef.current = open;
   }, [open, user, tenant]);
 
   useEffect(() => {
@@ -117,6 +120,11 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
     }
     if (!ownerName.trim()) {
       toast.error('Please enter Owner Name');
+      return;
+    }
+    const cleanPhone = mobileNumber.replace(/\D/g, '');
+    if (mobileNumber.trim() && cleanPhone.length < 10) {
+      toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
 

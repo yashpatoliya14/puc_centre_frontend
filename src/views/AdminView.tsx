@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -23,6 +23,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import {
   Table,
   TableHeader,
@@ -167,7 +174,10 @@ export function AdminView() {
     }
   }, []);
 
+  const customerFetchSeqRef = useRef(0);
+
   const loadOwnerCustomers = useCallback(async (tenantId: string) => {
+    const seq = ++customerFetchSeqRef.current;
     if (!tenantId) {
       setSelectedOwnerInfo(null);
       setOwnerCustomers([]);
@@ -178,14 +188,18 @@ export function AdminView() {
       const res = await apiRequest<OwnerCustomersResponse>(
         `/api/admin/owners/${tenantId}/customers`,
       );
+      if (seq !== customerFetchSeqRef.current) return;
       setSelectedOwnerInfo(res.owner);
       setOwnerCustomers(res.items || []);
     } catch (err) {
+      if (seq !== customerFetchSeqRef.current) return;
       toast.error('Failed to load owner customers', {
         description: err instanceof Error ? err.message : 'Unknown error',
       });
     } finally {
-      setLoadingCustomers(false);
+      if (seq === customerFetchSeqRef.current) {
+        setLoadingCustomers(false);
+      }
     }
   }, []);
 
@@ -623,21 +637,22 @@ export function AdminView() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={selectedOwnerId}
-                onChange={(e) => setSelectedOwnerId(e.target.value)}
-                className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0e0e11] px-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-200"
+              <Select
+                value={selectedOwnerId || undefined}
+                onValueChange={setSelectedOwnerId}
+                disabled={owners.length === 0}
               >
-                {owners.length === 0 ? (
-                  <option value="">No owners available</option>
-                ) : (
-                  owners.map((o) => (
-                    <option key={o.id} value={o.id}>
+                <SelectTrigger className="h-8 w-full sm:w-64 text-xs font-medium">
+                  <SelectValue placeholder="No owners available" />
+                </SelectTrigger>
+                <SelectContent>
+                  {owners.map((o) => (
+                    <SelectItem key={o.id} value={o.id} className="text-xs">
                       {o.businessName} — {o.ownerName} ({o.customerCount})
-                    </option>
-                  ))
-                )}
-              </select>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <div className="relative w-full sm:w-52">
                 <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
