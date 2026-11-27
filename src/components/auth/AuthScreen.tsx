@@ -28,7 +28,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Switch } from '../ui/switch';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Alert, AlertDescription } from '../ui/alert';
@@ -52,7 +51,6 @@ export function AuthScreen() {
   const [ownerName, setOwnerName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [address, setAddress] = useState('');
-  const [preloadSampleData, setPreloadSampleData] = useState(true);
   const [regOtpSent, setRegOtpSent] = useState(false);
   const [regOtpCode, setRegOtpCode] = useState('');
   const [regEmailVerified, setRegEmailVerified] = useState(false);
@@ -160,7 +158,6 @@ export function AuthScreen() {
         email,
         password,
         address,
-        preloadSampleData,
       });
       if (res.requiresVerification) {
         toast.success(res.message || 'Verification code sent to your email!');
@@ -710,22 +707,6 @@ export function AuthScreen() {
                         className="pl-9"
                       />
                     </div>
-                  </div>
-
-                  {/* Preload sample data switch */}
-                  <div className="flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900">
-                    <div>
-                      <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 block">
-                        Preload Demo Customers & Vehicles
-                      </span>
-                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block">
-                        Seeds sample vehicles with upcoming expirations to test automated calls immediately.
-                      </span>
-                    </div>
-                    <Switch
-                      checked={preloadSampleData}
-                      onCheckedChange={setPreloadSampleData}
-                    />
                   </div>
 
                   <Button

@@ -65,7 +65,6 @@ interface AuthContextValue {
     email: string;
     password: string;
     address?: string;
-    preloadSampleData?: boolean;
   }) => Promise<{ verificationToken?: string; requiresVerification?: boolean; email?: string; message?: string }>;
   verifyEmail: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -188,7 +187,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: string;
       password: string;
       address?: string;
-      preloadSampleData?: boolean;
     }) => {
       const res = await apiRequest<AuthResponse>('/api/auth/register', {
         method: 'POST',
