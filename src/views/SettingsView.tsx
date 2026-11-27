@@ -377,11 +377,11 @@ export function SettingsView() {
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-slate-100 dark:bg-slate-800 rounded w-1/4" />
-        <div className="h-28 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+        <div className="h-8 bg-zinc-100 dark:bg-zinc-900 rounded w-1/4" />
+        <div className="h-28 bg-zinc-100 dark:bg-zinc-900 rounded-xl" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="h-72 bg-slate-100 dark:bg-slate-800 rounded-xl" />
-          <div className="h-72 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+          <div className="h-72 bg-zinc-100 dark:bg-zinc-900 rounded-xl" />
+          <div className="h-72 bg-zinc-100 dark:bg-zinc-900 rounded-xl" />
         </div>
       </div>
     );
@@ -390,16 +390,16 @@ export function SettingsView() {
   return (
     <div className="space-y-6 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-200/80 dark:border-zinc-800">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+          <div className="h-10 w-10 rounded-xl bg-blue-600 dark:bg-blue-500 text-white flex items-center justify-center shrink-0 shadow-xs">
             <Sliders className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
               {t('settingsTitle')}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
               Configure WhatsApp reminders, daily delivery limits, frequency, and expiry schedule.
             </p>
           </div>
@@ -409,7 +409,7 @@ export function SettingsView() {
           onClick={handleSave}
           disabled={saving}
           size="sm"
-          className="h-9 px-4 gap-1.5 font-semibold text-xs bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 shadow-xs cursor-pointer self-start sm:self-auto"
+          className="h-9 px-4 gap-1.5 font-semibold text-xs bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 shadow-xs cursor-pointer self-start sm:self-auto"
         >
           <Save className="w-3.5 h-3.5" />
           {saving ? t('saving') : 'Save Settings'}
@@ -417,52 +417,52 @@ export function SettingsView() {
       </div>
 
       {/* SECTION 1: MESSAGING STATUS & SUMMARY BAR */}
-      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs overflow-hidden">
+      <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs overflow-hidden">
         <CardContent className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-3.5">
             <div
               className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                 messagesEnabled
-                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'
+                  ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/80 dark:border-blue-900'
+                  : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border border-zinc-200 dark:border-zinc-700'
               }`}
             >
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   WhatsApp Renewal Reminders
                 </h2>
                 <Badge
                   variant={messagesEnabled ? 'default' : 'secondary'}
                   className={`text-[10px] px-2 py-0 ${
                     messagesEnabled
-                      ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
-                      : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                      ? 'bg-blue-600 hover:bg-blue-600 text-white'
+                      : 'bg-zinc-200 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
                   }`}
                 >
                   {messagesEnabled ? 'Active' : 'Paused'}
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 Send WhatsApp PUC & Insurance renewal notifications to vehicle owners.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-between lg:justify-end">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-600 dark:text-slate-300">
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 font-mono">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-zinc-600 dark:text-zinc-300">
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700 font-mono">
                 {frequencyCount} {frequencyCount === 1 ? 'time' : 'times'}/day per customer
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700">
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700">
                 {totalSchedulePoints} schedule rules
               </span>
             </div>
 
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-2 pl-2 border-l border-zinc-200 dark:border-zinc-800">
+              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 {messagesEnabled ? 'On' : 'Off'}
               </span>
               <Switch
@@ -477,10 +477,10 @@ export function SettingsView() {
       {/* SECTION 2: FREQUENCY, TIMING & REMINDER SCHEDULE */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Delivery Frequency & Timing Card */}
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col">
-          <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs flex flex-col">
+          <CardHeader className="p-4 sm:p-5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Gauge className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <Gauge className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               Delivery Frequency &amp; Timing
             </CardTitle>
             <CardDescription className="text-xs">
@@ -489,14 +489,14 @@ export function SettingsView() {
           </CardHeader>
           <CardContent className="p-4 sm:p-5 space-y-5 flex-1">
             {/* Delivery Frequency + Customer Clock Time Slots */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3.5 space-y-3">
+            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/70 dark:bg-[#0e0e11] p-3.5 space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                    <CalendarClock className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                  <label className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                    <CalendarClock className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                     Delivery Frequency
                   </label>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
                     Set how many times per day to send reminders and pick each time from the clock.
                   </span>
                 </div>
@@ -517,7 +517,7 @@ export function SettingsView() {
                     max={12}
                     value={frequencyCount}
                     onChange={(e) => updateFrequencyCount(parseInt(e.target.value, 10))}
-                    className="w-14 h-8 text-center font-mono text-xs bg-white dark:bg-slate-950"
+                    className="w-14 h-8 text-center font-mono text-xs bg-white dark:bg-black"
                   />
                   <Button
                     type="button"
@@ -536,10 +536,10 @@ export function SettingsView() {
                 {deliveryTimes.slice(0, frequencyCount).map((timeVal, idx) => (
                   <div
                     key={idx}
-                    className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-1"
+                    className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black p-2.5 space-y-1"
                   >
-                    <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-indigo-500" />
+                    <label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-blue-500" />
                       Time {idx + 1}
                     </label>
                     <Input
@@ -556,10 +556,10 @@ export function SettingsView() {
         </Card>
 
         {/* Reminder Schedule Card */}
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col">
-          <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs flex flex-col">
+          <CardHeader className="p-4 sm:p-5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               {t('cadenceTitle')}
             </CardTitle>
             <CardDescription className="text-xs">
@@ -568,8 +568,8 @@ export function SettingsView() {
           </CardHeader>
           <CardContent className="p-4 sm:p-5 space-y-4 flex-1">
             {/* Days Before Expiry */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-2.5">
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-[#0e0e11] p-3.5 space-y-2.5">
+              <label className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 block">
                 {t('daysBeforeExpiry')}
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -582,8 +582,8 @@ export function SettingsView() {
                       onClick={() => toggleDayBefore(item.value)}
                       className={`text-xs px-2.5 py-1 rounded-md font-medium border transition-colors cursor-pointer ${
                         selected
-                          ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white border-transparent shadow-2xs'
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white border-transparent shadow-2xs'
+                          : 'bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                       }`}
                     >
                       {item.label}
@@ -597,7 +597,7 @@ export function SettingsView() {
                       key={customDay}
                       type="button"
                       onClick={() => toggleDayBefore(customDay)}
-                      className="text-xs px-2.5 py-1 rounded-md font-medium bg-indigo-600 text-white inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                      className="text-xs px-2.5 py-1 rounded-md font-medium bg-blue-600 text-white inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                       title="Click to remove"
                     >
                       <span>{customDay}d Before</span>
@@ -619,7 +619,7 @@ export function SettingsView() {
                     }
                   }}
                   placeholder="Custom days before (e.g. 10)"
-                  className="h-8 text-xs font-mono bg-white dark:bg-slate-950"
+                  className="h-8 text-xs font-mono bg-white dark:bg-black"
                 />
                 <Button
                   type="button"
@@ -635,12 +635,12 @@ export function SettingsView() {
             </div>
 
             {/* On Expiry Day */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 flex items-center justify-between gap-3">
+            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-[#0e0e11] p-3.5 flex items-center justify-between gap-3">
               <div>
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 block">
                   On Expiry Day (0d)
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
                   Send reminder on the exact certificate expiry date
                 </span>
               </div>
@@ -651,8 +651,8 @@ export function SettingsView() {
             </div>
 
             {/* Days After Expiry */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 space-y-2.5">
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-[#0e0e11] p-3.5 space-y-2.5">
+              <label className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 block">
                 {t('daysAfterExpiry')}
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -665,8 +665,8 @@ export function SettingsView() {
                       onClick={() => toggleDayAfter(item.value)}
                       className={`text-xs px-2.5 py-1 rounded-md font-medium border transition-colors cursor-pointer ${
                         selected
-                          ? 'bg-amber-500 text-white border-transparent shadow-2xs'
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-blue-500 text-white border-transparent shadow-2xs'
+                          : 'bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                       }`}
                     >
                       {item.label}
@@ -680,7 +680,7 @@ export function SettingsView() {
                       key={customDay}
                       type="button"
                       onClick={() => toggleDayAfter(customDay)}
-                      className="text-xs px-2.5 py-1 rounded-md font-medium bg-amber-600 text-white inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                      className="text-xs px-2.5 py-1 rounded-md font-medium bg-blue-600 text-white inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                       title="Click to remove"
                     >
                       <span>{customDay}d Overdue</span>
@@ -702,7 +702,7 @@ export function SettingsView() {
                     }
                   }}
                   placeholder="Custom days after (e.g. 5)"
-                  className="h-8 text-xs font-mono bg-white dark:bg-slate-950"
+                  className="h-8 text-xs font-mono bg-white dark:bg-black"
                 />
                 <Button
                   type="button"
@@ -721,12 +721,12 @@ export function SettingsView() {
       </div>
 
       {/* SECTION 3: TEMPLATE PREVIEWS */}
-      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
-        <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+      <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
+        <CardHeader className="p-4 sm:p-5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 WhatsApp Message Template Preview
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
@@ -742,19 +742,19 @@ export function SettingsView() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* PUC Template Preview */}
             <div className="space-y-2">
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-zinc-400" />
                 PUC Renewal Reminder
               </span>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 flex flex-col justify-end">
-                <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3.5 shadow-2xs">
-                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 mb-1">
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-[#e5ddd5]/30 dark:bg-black p-4 flex flex-col justify-end">
+                <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 p-3.5 shadow-2xs">
+                  <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
                     PUC Renewal Reminder
                   </p>
-                  <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                  <p className="text-xs text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
                     {`Hello Yash,\n\nYour vehicle's PUC certificate for GJ01AB1234 is expiring on 08/12/2027.\n\nPlease renew your PUC certificate before the expiry date to avoid penalties.\n\n🏢 PUC Centre: ${businessName || 'Patel PUC'}\n👤 Owner Name: ${ownerName || 'Yash'}\n📍 Address: ${centreAddress || 'Rajkot'}\n📞 Contact Number: ${mobileNumber || '1234567890'}\n\nThank you for choosing.`}
                   </p>
-                  <span className="text-[9px] text-slate-400 float-right mt-1.5 font-mono">
+                  <span className="text-[9px] text-zinc-400 float-right mt-1.5 font-mono">
                     10:45 AM • Delivered
                   </span>
                 </div>
@@ -763,19 +763,19 @@ export function SettingsView() {
 
             {/* Insurance Template Preview */}
             <div className="space-y-2">
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-zinc-400" />
                 Vehicle Insurance Renewal Reminder
               </span>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#e5ddd5]/30 dark:bg-slate-950 p-4 flex flex-col justify-end">
-                <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3.5 shadow-2xs">
-                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 mb-1">
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-[#e5ddd5]/30 dark:bg-black p-4 flex flex-col justify-end">
+                <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 p-3.5 shadow-2xs">
+                  <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
                     Vehicle Insurance Renewal Reminder
                   </p>
-                  <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                  <p className="text-xs text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
                     {`Hello yash,\n\nYour vehicle GJ02GH1234 insurance policy is expiring on 12/08/2026.\n\n📄 Policy No.: 123\n🏢 Insurer: india\n\nRenew your policy on time to avoid a lapse in insurance coverage.\n\nFor Renewal Assistance:\n🏢 Centre: ${businessName || 'patel'}\n👤 Owner: ${ownerName || 'yash'}\n📞 Contact: ${mobileNumber || '1234526780'}\n\nThank you for your trust! 🙏`}
                   </p>
-                  <span className="text-[9px] text-slate-400 float-right mt-1.5 font-mono">
+                  <span className="text-[9px] text-zinc-400 float-right mt-1.5 font-mono">
                     11:15 AM • Delivered
                   </span>
                 </div>
@@ -786,12 +786,12 @@ export function SettingsView() {
       </Card>
 
       {/* SECTION 4: WHATSAPP ENGINE ACTIVITY & LOGS */}
-      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
-        <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+      <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
+        <CardHeader className="p-4 sm:p-5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 WhatsApp Engine Dispatch Status
                 {waSummary && (
                   <Badge variant="outline" className="font-mono text-[11px] ml-1">
@@ -820,7 +820,7 @@ export function SettingsView() {
                 size="sm"
                 onClick={() => handleRunEngineNow(true)}
                 disabled={runningEngine || !messagesEnabled}
-                className="h-8 text-xs gap-1 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 cursor-pointer"
+                className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5" />
                 {runningEngine ? 'Dispatching...' : 'Run Engine Now'}
@@ -830,15 +830,15 @@ export function SettingsView() {
         </CardHeader>
         <CardContent className="p-4 sm:p-5 space-y-4">
           {/* Sub-tabs: Scheduled Customer Queue vs Recent Logs */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-800">
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setActivityTab('schedule')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   activityTab === 'schedule'
-                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-blue-600 text-white dark:bg-blue-500'
+                    : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                 }`}
               >
                 Customer Schedule &amp; Status ({scheduleItems.length})
@@ -848,15 +848,15 @@ export function SettingsView() {
                 onClick={() => setActivityTab('logs')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   activityTab === 'logs'
-                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-blue-600 text-white dark:bg-blue-500'
+                    : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                 }`}
               >
                 Dispatch History ({waLogs.length})
               </button>
             </div>
             {scheduleTodayIst && (
-              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+              <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
                 Today (IST): {scheduleTodayIst} • Slots: {(waSummary?.deliveryTimes || deliveryTimes).join(', ')}
               </span>
             )}
@@ -865,10 +865,10 @@ export function SettingsView() {
           {activityTab === 'schedule' ? (
             <div className="space-y-3">
               {/* Filter Bar: By Enabled Settings Rule + Sent / Not Sent + Search */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-zinc-50/80 dark:bg-[#0e0e11] p-3 rounded-xl border border-zinc-200/80 dark:border-zinc-800">
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1 mr-1">
+                    <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 flex items-center gap-1 mr-1">
                       <Filter className="w-3 h-3" />
                       Settings Rule:
                     </span>
@@ -877,8 +877,8 @@ export function SettingsView() {
                       onClick={() => setRuleFilter('all')}
                       className={`text-[11px] px-2.5 py-1 rounded-md font-medium border cursor-pointer transition-colors ${
                         ruleFilter === 'all'
-                          ? 'bg-indigo-600 text-white border-transparent'
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                          ? 'bg-blue-600 text-white border-transparent'
+                          : 'bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'
                       }`}
                     >
                       All Rules
@@ -888,8 +888,8 @@ export function SettingsView() {
                       onClick={() => setRuleFilter('due_today')}
                       className={`text-[11px] px-2.5 py-1 rounded-md font-medium border cursor-pointer transition-colors ${
                         ruleFilter === 'due_today'
-                          ? 'bg-indigo-600 text-white border-transparent'
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                          ? 'bg-blue-600 text-white border-transparent'
+                          : 'bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'
                       }`}
                     >
                       Due Today
@@ -901,8 +901,8 @@ export function SettingsView() {
                         onClick={() => setRuleFilter(rule.key)}
                         className={`text-[11px] px-2.5 py-1 rounded-md font-medium border cursor-pointer transition-colors ${
                           ruleFilter === rule.key
-                            ? 'bg-indigo-600 text-white border-transparent'
-                            : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                            ? 'bg-blue-600 text-white border-transparent'
+                            : 'bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'
                         }`}
                       >
                         {rule.label}
@@ -911,7 +911,7 @@ export function SettingsView() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mr-1">
+                    <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 mr-1">
                       Status:
                     </span>
                     {(
@@ -928,8 +928,8 @@ export function SettingsView() {
                         onClick={() => setStatusFilter(st.id)}
                         className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium border cursor-pointer transition-colors ${
                           statusFilter === st.id
-                            ? 'bg-slate-900 text-white dark:bg-indigo-500 dark:text-white border-transparent'
-                            : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                            ? 'bg-zinc-900 text-white dark:bg-blue-500 dark:text-white border-transparent'
+                            : 'bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'
                         }`}
                       >
                         {st.label}
@@ -939,31 +939,31 @@ export function SettingsView() {
                 </div>
 
                 <div className="relative w-full lg:w-64 shrink-0">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <Input
                     value={scheduleSearch}
                     onChange={(e) => setScheduleSearch(e.target.value)}
                     placeholder="Filter customer, mobile, plate..."
-                    className="h-8 pl-8 text-xs bg-white dark:bg-slate-950"
+                    className="h-8 pl-8 text-xs bg-white dark:bg-black"
                   />
                 </div>
               </div>
 
               {filteredScheduleItems.length === 0 ? (
-                <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-6">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center py-6">
                   No customers match the selected Settings rule and status filter.
                 </p>
               ) : (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-hidden max-h-[420px] overflow-y-auto">
+                <div className="divide-y divide-zinc-100 dark:divide-zinc-800/80 rounded-lg border border-zinc-200/80 dark:border-zinc-800 overflow-hidden max-h-[420px] overflow-y-auto">
                   {filteredScheduleItems.map((item) => (
                     <div
                       key={item.id}
-                      className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-white dark:bg-slate-950/50"
+                      className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-white dark:bg-black"
                     >
                       <div className="space-y-0.5">
-                        <div className="font-semibold text-slate-900 dark:text-slate-100 flex flex-wrap items-center gap-1.5">
+                        <div className="font-semibold text-zinc-900 dark:text-zinc-100 flex flex-wrap items-center gap-1.5">
                           <span>{item.customerName}</span>
-                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900">
                             {item.vehiclePlate}
                           </span>
                           <Badge variant="outline" className="text-[10px]">
@@ -973,14 +973,14 @@ export function SettingsView() {
                             {item.ruleLabel}
                           </Badge>
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex flex-wrap items-center gap-2">
+                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono flex flex-wrap items-center gap-2">
                           <span>{item.mobileNumber}</span>
                           <span>•</span>
-                          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+                          <span className="text-blue-600 dark:text-blue-400 font-semibold">
                             Send on: {item.scheduledDateIst} @ {item.scheduledTimes.join(', ')} IST
                           </span>
                           {item.daysUntilScheduled === 0 && (
-                            <span className="px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-sans font-semibold">
+                            <span className="px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-sans font-semibold">
                               Today
                             </span>
                           )}
@@ -999,9 +999,9 @@ export function SettingsView() {
                           }
                           className={`text-[10px] ${
                             item.status === 'sent'
-                              ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
+                              ? 'bg-blue-600 hover:bg-blue-600 text-white'
                               : item.status === 'not_sent' && item.daysUntilScheduled === 0
-                                ? 'bg-amber-500 text-white hover:bg-amber-500'
+                                ? 'bg-blue-500 text-white hover:bg-blue-500'
                                 : ''
                           }`}
                         >
@@ -1014,24 +1014,24 @@ export function SettingsView() {
               )}
             </div>
           ) : waLogs.length === 0 ? (
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center py-6">
               No WhatsApp dispatches logged yet. Save your active delivery times or click “Run Engine Now” to dispatch matching due reminders.
             </p>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-hidden max-h-[420px] overflow-y-auto">
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/80 rounded-lg border border-zinc-200/80 dark:border-zinc-800 overflow-hidden max-h-[420px] overflow-y-auto">
               {waLogs.map((log) => (
-                <div key={log.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-white dark:bg-slate-950/50">
+                <div key={log.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-white dark:bg-black">
                   <div className="flex items-center gap-2.5">
                     {log.status === 'sent' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
                     ) : (
                       <XCircle className="w-4 h-4 text-red-500 shrink-0" />
                     )}
                     <div>
-                      <div className="font-semibold text-slate-900 dark:text-slate-100 flex flex-wrap items-center gap-1.5">
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-100 flex flex-wrap items-center gap-1.5">
                         <span>{log.customer_name || 'Customer'}</span>
                         {log.registration_number && (
-                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900">
                             {log.registration_number}
                           </span>
                         )}
@@ -1039,7 +1039,7 @@ export function SettingsView() {
                           {log.entity_type.toUpperCase()} • {log.template_name}
                         </Badge>
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                      <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 font-mono">
                         {log.phone_number} • Slot: {log.slot_time} ({log.dispatch_date_ist})
                         {log.error_message && <span className="text-red-500 ml-2">({log.error_message})</span>}
                       </div>
@@ -1048,7 +1048,7 @@ export function SettingsView() {
                   <Badge
                     variant={log.status === 'sent' ? 'default' : 'destructive'}
                     className={`text-[10px] self-start sm:self-center ${
-                      log.status === 'sent' ? 'bg-emerald-600 hover:bg-emerald-600 text-white' : ''
+                      log.status === 'sent' ? 'bg-blue-600 hover:bg-blue-600 text-white' : ''
                     }`}
                   >
                     {log.status === 'sent' ? 'Sent' : 'Failed'}

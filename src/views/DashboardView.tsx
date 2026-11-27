@@ -138,12 +138,12 @@ const COMMON_INSURERS = [
  */
 function IndianNumberPlate({ regNumber }: { regNumber: string }) {
   return (
-    <div className="inline-flex items-stretch rounded-md border border-slate-800 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xs overflow-hidden select-none">
+    <div className="inline-flex items-stretch rounded-md border border-zinc-800 dark:border-zinc-700 bg-white dark:bg-[#0e0e11] shadow-2xs overflow-hidden select-none">
       <div className="bg-[#003399] text-white px-1.5 py-0.5 flex flex-col items-center justify-center border-r border-white/20">
         <span className="text-[8px] font-black tracking-wider leading-none">IND</span>
       </div>
-      <div className="px-2 py-0.5 flex items-center bg-white dark:bg-slate-900">
-        <span className="font-mono font-bold text-xs tracking-wider text-slate-900 dark:text-slate-100 uppercase leading-none">
+      <div className="px-2 py-0.5 flex items-center bg-white dark:bg-[#0e0e11]">
+        <span className="font-mono font-bold text-xs tracking-wider text-zinc-900 dark:text-zinc-100 uppercase leading-none">
           {regNumber || '—'}
         </span>
       </div>
@@ -545,17 +545,17 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
   return (
     <div className="space-y-6 pb-12">
       {/* 1. CLEAN EXECUTIVE PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80 dark:border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
               Vehicles & Reminders
             </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400">
               {stats.total} total
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Track vehicle PUC certificates, manage expiry warnings, and dispatch WhatsApp renewal reminders.
           </p>
         </div>
@@ -577,16 +577,16 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             variant="outline"
             size="sm"
             onClick={() => setBulkModalOpen(true)}
-            className="h-9 gap-1.5 font-semibold text-xs border-indigo-200 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 cursor-pointer"
+            className="h-9 gap-1.5 font-semibold text-xs border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-50/60 dark:hover:bg-blue-950/40 cursor-pointer"
           >
-            <FileText className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>Bulk Upload (PDF / Image)</span>
           </Button>
 
           <Button
             onClick={openCreateModal}
             size="sm"
-            className="h-9 gap-1.5 font-semibold text-xs bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 shadow-xs cursor-pointer"
+            className="h-9 gap-1.5 font-semibold text-xs bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             {t('registerCustomer')}
@@ -597,43 +597,43 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       {/* 2. REFINED MINIMALIST KPI CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Total Registered */}
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 {t('totalCustomers')}
               </span>
-              <Users className="w-4 h-4 text-slate-400" />
+              <Users className="w-4 h-4 text-zinc-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-2">
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
               {stats.total}
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
               Active customer profiles
             </p>
           </CardContent>
         </Card>
 
         {/* Card 2: Due in 7 Days */}
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                 {t('dueSoon')}
               </span>
-              <Clock className="w-4 h-4 text-amber-500" />
+              <Clock className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400 mt-2">
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400 mt-2">
               {stats.pucExpiring}
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
               Expiring in next 7 days
             </p>
           </CardContent>
         </Card>
 
         {/* Card 3: Expired / Overdue */}
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-red-600 dark:text-red-400">
@@ -644,25 +644,25 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             <div className="text-2xl sm:text-3xl font-bold tracking-tight text-red-600 dark:text-red-400 mt-2">
               {stats.expiredCount}
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
               WhatsApp alert needed
             </p>
           </CardContent>
         </Card>
 
         {/* Card 4: Insured Coverage */}
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 Insured Vehicles
               </span>
-              <ShieldCheck className="w-4 h-4 text-slate-400" />
+              <ShieldCheck className="w-4 h-4 text-zinc-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-2">
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
               {stats.insuredTotal}
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
               {stats.insExpiring} policies due soon
             </p>
           </CardContent>
@@ -672,7 +672,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       {/* 3. SEARCH & SEGMENTED FILTER TABS */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
           <Input
             value={searchQuery}
             onChange={(e) => {
@@ -685,7 +685,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5 cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -701,8 +701,8 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'all'
-                ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white shadow-2xs'
-                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white shadow-2xs'
+                : 'bg-white dark:bg-[#0e0e11] border border-zinc-200/80 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
           >
             {t('filterAll')} ({customers.length})
@@ -715,8 +715,8 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'expiring'
-                ? 'bg-amber-500 text-white shadow-2xs'
-                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-blue-500 text-white shadow-2xs'
+                : 'bg-white dark:bg-[#0e0e11] border border-zinc-200/80 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
           >
             {t('filterExpiringSoon')} ({stats.pucExpiring})
@@ -730,7 +730,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'expired'
                 ? 'bg-red-500 text-white shadow-2xs'
-                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                : 'bg-white dark:bg-[#0e0e11] border border-zinc-200/80 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
           >
             {t('filterExpired')} ({stats.expiredCount})
@@ -744,7 +744,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               activeFilter === 'insured'
                 ? 'bg-sky-600 text-white shadow-2xs'
-                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                : 'bg-white dark:bg-[#0e0e11] border border-zinc-200/80 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
           >
             Insured ({stats.insuredTotal})
@@ -753,7 +753,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
       </div>
 
       {/* 4A. DESKTOP DATA TABLE (Visible on >= md screens) */}
-      <div className="hidden md:block rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+      <div className="hidden md:block rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-[#0e0e11] overflow-hidden shadow-2xs">
         <Table>
           <TableHeader>
             <TableRow>
@@ -770,33 +770,33 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 <TableRow key={idx}>
                   <TableCell>
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                      <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-900 animate-pulse" />
                       <div className="space-y-1.5">
-                        <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
-                        <div className="w-16 h-2.5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                        <div className="w-24 h-3 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
+                        <div className="w-16 h-2.5 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="w-20 h-5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                    <div className="w-20 h-5 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
                   </TableCell>
                   <TableCell>
-                    <div className="w-20 h-3.5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                    <div className="w-20 h-3.5 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
                   </TableCell>
                   <TableCell>
-                    <div className="w-20 h-3.5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                    <div className="w-20 h-3.5 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="w-24 h-7 bg-slate-100 dark:bg-slate-800 rounded animate-pulse ml-auto" />
+                    <div className="w-24 h-7 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse ml-auto" />
                   </TableCell>
                 </TableRow>
               ))
             ) : paginatedCustomers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-12 text-center text-slate-500">
+                <TableCell colSpan={5} className="py-12 text-center text-zinc-500">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <Car className="w-7 h-7 text-slate-300 dark:text-slate-600" />
-                    <p className="font-medium text-xs text-slate-600 dark:text-slate-400">
+                    <Car className="w-7 h-7 text-zinc-300 dark:text-zinc-600" />
+                    <p className="font-medium text-xs text-zinc-600 dark:text-zinc-400">
                       {t('noCustomersFound')}
                     </p>
                     <Button
@@ -824,20 +824,20 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     {/* Customer Info */}
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 text-xs font-bold ring-1 ring-slate-200 dark:ring-slate-700">
+                        <Avatar className="h-8 w-8 bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 text-xs font-bold ring-1 ring-zinc-200 dark:ring-zinc-700">
                           <AvatarFallback>
                             {getInitials(c.fullName)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-xs leading-none">
+                          <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs leading-none">
                             {c.fullName}
                           </p>
                           <div className="flex items-center gap-1.5 mt-1">
-                            <span className="font-mono text-[11px] text-slate-500">
+                            <span className="font-mono text-[11px] text-zinc-500">
                               +91 {c.mobileNumber}
                             </span>
-                            <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold">
+                            <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-500 font-semibold">
                               {c.language || 'GU'}
                             </span>
                           </div>
@@ -851,7 +851,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                         <IndianNumberPlate
                           regNumber={c.vehicle?.registrationNumber || 'GJ01AB1234'}
                         />
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                           {c.vehicle?.vehicleType || '2-Wheeler'} • {c.vehicle?.fuelType || 'Petrol'}
                         </p>
                       </div>
@@ -860,7 +860,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     {/* PUC Expiry */}
                     <TableCell>
                       <div className="space-y-1">
-                        <span className="text-xs font-medium text-slate-800 dark:text-slate-200 block">
+                        <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 block">
                           {formatDateShort(c.certificate?.expiryDate)}
                         </span>
                         {isPucExpired ? (
@@ -868,11 +868,11 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                             Expired ({Math.abs(c.certificate?.daysUntilExpiry || 0)}d ago)
                           </span>
                         ) : isPucExpSoon ? (
-                          <span className="inline-flex items-center text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                          <span className="inline-flex items-center text-[10px] font-semibold text-blue-600 dark:text-blue-400">
                             Due in {c.certificate?.daysUntilExpiry}d
                           </span>
                         ) : (
-                          <span className="inline-flex items-center text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          <span className="inline-flex items-center text-[10px] font-semibold text-blue-600 dark:text-blue-400">
                             Active
                           </span>
                         )}
@@ -883,24 +883,24 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <TableCell>
                       {hasIns && c.insurance ? (
                         <div className="space-y-0.5">
-                          <span className="text-xs font-medium text-slate-800 dark:text-slate-200 block">
+                          <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 block">
                             {c.insurance.insuranceCompany}
                           </span>
-                          <span className="text-[11px] font-mono text-slate-500 block truncate max-w-[130px]">
+                          <span className="text-[11px] font-mono text-zinc-500 block truncate max-w-[130px]">
                             {c.insurance.policyNumber}
                           </span>
                           {isInsExpired ? (
                             <span className="text-[10px] font-semibold text-red-600">Expired</span>
                           ) : isInsExpSoon ? (
-                            <span className="text-[10px] font-semibold text-amber-600">
+                            <span className="text-[10px] font-semibold text-blue-600">
                               Due in {c.insurance.daysUntilExpiry}d
                             </span>
                           ) : (
-                            <span className="text-[10px] font-semibold text-emerald-600">Covered</span>
+                            <span className="text-[10px] font-semibold text-blue-600">Covered</span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-400">—</span>
+                        <span className="text-xs text-zinc-400">—</span>
                       )}
                     </TableCell>
 
@@ -912,10 +912,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           variant="outline"
                           size="sm"
                           onClick={() => openWhatsAppDialog(c, hasIns && isInsExpSoon ? 'insurance' : 'puc')}
-                          className="h-8 gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-semibold cursor-pointer"
+                          className="h-8 gap-1.5 border-blue-500/40 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs font-semibold cursor-pointer"
                           title="Open WhatsApp reminder preview"
                         >
-                          <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                          <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
                           <span>WhatsApp</span>
                         </Button>
 
@@ -924,7 +924,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => openEditModal(c)}
-                          className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 h-8 w-8"
+                          className="text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 h-8 w-8"
                           title="Edit Details"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -935,7 +935,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => setDeleteTarget(c)}
-                          className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 h-8 w-8"
+                          className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400 h-8 w-8"
                           title="Delete Customer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -950,7 +950,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         </Table>
 
         {/* Desktop Pagination Bar */}
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+        <div className="p-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
           <span>
             Showing {filteredCustomers.length === 0 ? 0 : page * rowsPerPage + 1} to{' '}
             {Math.min((page + 1) * rowsPerPage, filteredCustomers.length)} of {filteredCustomers.length} vehicles
@@ -986,14 +986,14 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
         {loading ? (
           Array.from({ length: 3 }).map((_, idx) => (
             <Card key={idx} className="p-4 space-y-3">
-              <div className="h-5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-1/3" />
-              <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-1/2" />
-              <div className="h-9 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+              <div className="h-5 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse w-1/3" />
+              <div className="h-4 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse w-1/2" />
+              <div className="h-9 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
             </Card>
           ))
         ) : paginatedCustomers.length === 0 ? (
-          <Card className="p-8 text-center text-slate-500">
-            <Car className="w-7 h-7 text-slate-300 mx-auto mb-2" />
+          <Card className="p-8 text-center text-zinc-500">
+            <Car className="w-7 h-7 text-zinc-300 mx-auto mb-2" />
             <p className="font-medium text-xs">{t('noCustomersFound')}</p>
           </Card>
         ) : (
@@ -1007,14 +1007,14 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               <Card key={c.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    <Avatar className="h-8 w-8 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold text-xs">
+                    <Avatar className="h-8 w-8 bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 font-bold text-xs">
                       <AvatarFallback>{getInitials(c.fullName)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                      <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                         {c.fullName}
                       </h4>
-                      <p className="text-[11px] font-mono text-slate-500">
+                      <p className="text-[11px] font-mono text-zinc-500">
                         +91 {c.mobileNumber}
                       </p>
                     </div>
@@ -1025,7 +1025,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => openEditModal(c)}
-                      className="text-slate-400 h-7 w-7"
+                      className="text-zinc-400 h-7 w-7"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </Button>
@@ -1033,7 +1033,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => setDeleteTarget(c)}
-                      className="text-slate-400 hover:text-red-500 h-7 w-7"
+                      className="text-zinc-400 hover:text-red-500 h-7 w-7"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -1041,7 +1041,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 </div>
 
                 {/* Plate and Expiry Status */}
-                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
                   <IndianNumberPlate
                     regNumber={c.vehicle?.registrationNumber || 'GJ01AB1234'}
                   />
@@ -1051,11 +1051,11 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                         Expired ({Math.abs(c.certificate?.daysUntilExpiry || 0)}d ago)
                       </span>
                     ) : isPucExpSoon ? (
-                      <span className="text-[10px] font-semibold text-amber-600">
+                      <span className="text-[10px] font-semibold text-blue-600">
                         Due in {c.certificate?.daysUntilExpiry}d
                       </span>
                     ) : (
-                      <span className="text-[10px] font-semibold text-emerald-600">
+                      <span className="text-[10px] font-semibold text-blue-600">
                         Active
                       </span>
                     )}
@@ -1068,9 +1068,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     variant="outline"
                     size="sm"
                     onClick={() => openWhatsAppDialog(c, hasIns && isInsExpSoon ? 'insurance' : 'puc')}
-                    className="w-full font-semibold text-xs border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 gap-1.5"
+                    className="w-full font-semibold text-xs border-blue-500/40 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-1.5"
                   >
-                    <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                    <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
                     Send WhatsApp Reminder
                   </Button>
                 </div>
@@ -1082,28 +1082,28 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
       {/* 5. CREATE / EDIT CUSTOMER DIALOG */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl">
           {/* Fixed Header */}
-          <DialogHeader className="px-5 sm:px-6 py-4 pr-12 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/90 shrink-0 text-left">
+          <DialogHeader className="px-5 sm:px-6 py-4 pr-12 border-b border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/80 dark:bg-[#0e0e11] shrink-0 text-left">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-slate-900 dark:from-indigo-500 dark:to-indigo-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-zinc-900 dark:from-blue-500 dark:to-blue-700 text-white flex items-center justify-center shrink-0 shadow-sm">
                 <Car className="h-5 w-5" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                     {editingCustomer ? `Edit Customer: ${editingCustomer.fullName}` : t('addCustomerTitle')}
                   </DialogTitle>
                   {!editingCustomer && (
                     <Badge
                       variant="outline"
-                      className="text-[10px] py-0 px-2 font-semibold bg-indigo-50/80 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800"
+                      className="text-[10px] py-0 px-2 font-semibold bg-blue-50/80 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800"
                     >
                       Quick Entry
                     </Badge>
                   )}
                 </div>
-                <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                   {editingCustomer
                     ? 'Update customer profile, PUC validity, and insurance renewal dates'
                     : 'Upload a Parivahan PDF or certificate image to auto-fill, or enter details manually'}
@@ -1134,13 +1134,13 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               )}
 
               {/* SECTION 1: Customer Profile */}
-              <div className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 p-4 space-y-3.5">
+              <div className="rounded-xl border border-zinc-200/90 dark:border-zinc-800 bg-zinc-50/40 dark:bg-[#0e0e11] p-4 space-y-3.5">
                 <div className="flex items-center gap-2">
-                  <span className="h-5 w-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <span className="h-5 w-5 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold flex items-center justify-center shrink-0">
                     1
                   </span>
-                  <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                  <User className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-200">
                     Customer Details
                   </span>
                 </div>
@@ -1163,9 +1163,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <Label htmlFor="cust-mobile" className="text-xs font-semibold">
                       {t('customerMobile')} <span className="text-red-500">*</span>
                     </Label>
-                    <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent shadow-xs overflow-hidden">
-                      <span className="px-2.5 h-10 flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/90 border-r border-slate-200 dark:border-slate-700 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 select-none shrink-0">
-                        <Phone className="h-3 w-3 text-slate-400" />
+                    <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0e0e11] focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent shadow-xs overflow-hidden">
+                      <span className="px-2.5 h-10 flex items-center gap-1 bg-zinc-100/90 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 text-xs font-mono font-semibold text-zinc-600 dark:text-zinc-300 select-none shrink-0">
+                        <Phone className="h-3 w-3 text-zinc-400" />
                         +91
                       </span>
                       <Input
@@ -1184,13 +1184,13 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               </div>
 
               {/* SECTION 2: Vehicle & PUC Certificate */}
-              <div className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 p-4 space-y-3.5">
+              <div className="rounded-xl border border-zinc-200/90 dark:border-zinc-800 bg-zinc-50/40 dark:bg-[#0e0e11] p-4 space-y-3.5">
                 <div className="flex items-center gap-2">
-                  <span className="h-5 w-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <span className="h-5 w-5 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold flex items-center justify-center shrink-0">
                     2
                   </span>
-                  <ShieldCheck className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                  <ShieldCheck className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-200">
                     Vehicle & PUC Certificate
                   </span>
                 </div>
@@ -1200,7 +1200,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                     <Label htmlFor="veh-plate" className="text-xs font-semibold">
                       {t('vehiclePlate')} <span className="text-red-500">*</span>
                     </Label>
-                      <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent shadow-xs overflow-hidden">
+                      <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0e0e11] focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent shadow-xs overflow-hidden">
                         <span className="px-2 h-10 bg-[#003399] text-white text-[9px] font-black tracking-wider flex items-center justify-center select-none shrink-0">
                           IND
                         </span>
@@ -1251,7 +1251,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="veh-model" className="text-xs font-semibold">
-                      Make / Model <span className="text-slate-400 font-normal">(Optional)</span>
+                      Make / Model <span className="text-zinc-400 font-normal">(Optional)</span>
                     </Label>
                     <Input
                       id="veh-model"
@@ -1263,7 +1263,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="puc-cert-no" className="text-xs font-semibold">
-                      PUC Cert No. <span className="text-slate-400 font-normal">(Optional)</span>
+                      PUC Cert No. <span className="text-zinc-400 font-normal">(Optional)</span>
                     </Label>
                     <Input
                       id="puc-cert-no"
@@ -1298,14 +1298,14 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                         <button
                           type="button"
                           onClick={() => setExpiryDate(addDaysIsoDate(issueDate || todayIsoDate(), 180))}
-                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200/80 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-200/80 hover:bg-blue-100 text-zinc-700 hover:text-blue-700 dark:bg-zinc-900 dark:hover:bg-blue-950 dark:text-zinc-300 dark:hover:text-blue-300 transition-colors cursor-pointer"
                         >
                           +6 Mo
                         </button>
                         <button
                           type="button"
                           onClick={() => setExpiryDate(addDaysIsoDate(issueDate || todayIsoDate(), 365))}
-                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200/80 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-200/80 hover:bg-blue-100 text-zinc-700 hover:text-blue-700 dark:bg-zinc-900 dark:hover:bg-blue-950 dark:text-zinc-300 dark:hover:text-blue-300 transition-colors cursor-pointer"
                         >
                           +1 Yr
                         </button>
@@ -1326,26 +1326,26 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               <div
                 className={`rounded-xl border p-4 space-y-3.5 transition-colors ${
                   hasInsurance
-                    ? 'border-indigo-200 dark:border-indigo-900/70 bg-indigo-50/30 dark:bg-indigo-950/20'
-                    : 'border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40'
+                    ? 'border-blue-200 dark:border-blue-900/70 bg-blue-50/30 dark:bg-blue-950/20'
+                    : 'border-zinc-200/90 dark:border-zinc-800 bg-zinc-50/40 dark:bg-[#0e0e11]'
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="h-5 w-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold flex items-center justify-center shrink-0">
+                    <span className="h-5 w-5 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold flex items-center justify-center shrink-0">
                       3
                     </span>
-                    <Shield className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                    <Shield className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-200">
                           Insurance Policy
                         </span>
-                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-medium text-slate-500">
+                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-medium text-zinc-500">
                           Optional
                         </Badge>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                         Track insurance renewals alongside PUC certificates
                       </p>
                     </div>
@@ -1357,7 +1357,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 </div>
 
                 {hasInsurance && (
-                  <div className="pt-3 border-t border-slate-200/70 dark:border-slate-800 space-y-3.5">
+                  <div className="pt-3 border-t border-zinc-200/70 dark:border-zinc-800 space-y-3.5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div className="space-y-1.5">
                         <Label htmlFor="ins-number" className="text-xs font-semibold">
@@ -1424,7 +1424,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
                       <div className="space-y-1.5">
                         <Label htmlFor="ins-premium" className="text-xs font-semibold">
-                          Premium Amount (₹) <span className="text-slate-400 font-normal">(Optional)</span>
+                          Premium Amount (₹) <span className="text-zinc-400 font-normal">(Optional)</span>
                         </Label>
                         <Input
                           id="ins-premium"
@@ -1460,7 +1460,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                           <button
                             type="button"
                             onClick={() => setInsExpiryDate(addDaysIsoDate(insStartDate || todayIsoDate(), 365))}
-                            className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200/80 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                            className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-200/80 hover:bg-blue-100 text-zinc-700 hover:text-blue-700 dark:bg-zinc-900 dark:hover:bg-blue-950 dark:text-zinc-300 dark:hover:text-blue-300 transition-colors cursor-pointer"
                           >
                             +1 Yr
                           </button>
@@ -1480,9 +1480,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             </div>
 
             {/* Sticky Footer */}
-            <DialogFooter className="px-5 sm:px-6 py-3.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 flex flex-row items-center justify-between gap-3 shrink-0 sm:space-x-0">
-              <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+            <DialogFooter className="px-5 sm:px-6 py-3.5 border-t border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/90 dark:bg-[#0e0e11] flex flex-row items-center justify-between gap-3 shrink-0 sm:space-x-0">
+              <div className="hidden sm:flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
                 <span>WhatsApp renewal reminders auto-scheduled</span>
               </div>
               <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto">
@@ -1500,7 +1500,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                   type="submit"
                   size="sm"
                   disabled={submitting}
-                  className="h-9 px-5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 gap-1.5 shadow-xs cursor-pointer"
+                  className="h-9 px-5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 gap-1.5 shadow-xs cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -1522,17 +1522,17 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
 
       {/* 5B. DEDICATED BULK REGISTRATION DIALOG (PDF & IMAGE) */}
       <Dialog open={bulkModalOpen} onOpenChange={setBulkModalOpen}>
-        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
-          <DialogHeader className="px-5 sm:px-6 py-4 pr-12 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/90 shrink-0 text-left">
+        <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl">
+          <DialogHeader className="px-5 sm:px-6 py-4 pr-12 border-b border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/80 dark:bg-[#0e0e11] shrink-0 text-left">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
                 <DialogTitle className="text-base sm:text-lg font-bold">
                   Bulk Register Customers (PDF & Images)
                 </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                   Drop multiple Parivahan PDF certificates or images at once to auto-extract and register all customers in 1 click.
                 </DialogDescription>
               </div>
@@ -1571,7 +1571,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
               <div>
                 <h4 className="font-bold text-xs leading-tight flex items-center gap-1.5">
                   {whatsappCustomer?.fullName}
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-300" />
                 </h4>
                 <p className="text-[10px] text-white/80 font-mono">
                   +91 {whatsappCustomer?.mobileNumber}
@@ -1580,25 +1580,25 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             </div>
           </div>
 
-          <div className="p-4 bg-[#e5ddd5]/30 dark:bg-slate-950 min-h-[200px] flex flex-col justify-end">
+          <div className="p-4 bg-[#e5ddd5]/30 dark:bg-black min-h-[200px] flex flex-col justify-end">
             {loadingWhatsapp ? (
-              <div className="flex items-center justify-center p-8 text-slate-500">
+              <div className="flex items-center justify-center p-8 text-zinc-500">
                 <RefreshCw className="w-4 h-4 animate-spin mr-2" />
                 <span className="text-xs">Generating reminder message...</span>
               </div>
             ) : (
-              <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 p-3 shadow-2xs ml-auto">
-                <p className="text-xs text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed">
+              <div className="max-w-[90%] rounded-2xl rounded-bl-xs bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 p-3 shadow-2xs ml-auto">
+                <p className="text-xs text-zinc-800 dark:text-zinc-100 whitespace-pre-wrap leading-relaxed">
                   {whatsappPreview}
                 </p>
-                <span className="text-[9px] text-slate-400 float-right mt-1 font-mono">
+                <span className="text-[9px] text-zinc-400 float-right mt-1 font-mono">
                   10:30 AM • Delivered
                 </span>
               </div>
             )}
           </div>
 
-          <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+          <div className="p-3 bg-white dark:bg-[#0e0e11] border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
             <Button
               type="button"
               variant="outline"
@@ -1615,7 +1615,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
                 size="sm"
                 onClick={handleSendApiWhatsApp}
                 disabled={sendingApiWhatsapp || loadingWhatsapp}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-2xs cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-2xs cursor-pointer disabled:opacity-50"
               >
                 {sendingApiWhatsapp ? (
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -1654,7 +1654,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (route: NavRoute) =>
             </DialogTitle>
             <DialogDescription className="text-xs mt-2">
               Are you sure you want to delete customer{' '}
-              <strong className="text-slate-900 dark:text-white">{deleteTarget?.fullName}</strong> and their
+              <strong className="text-zinc-900 dark:text-white">{deleteTarget?.fullName}</strong> and their
               vehicle record? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>

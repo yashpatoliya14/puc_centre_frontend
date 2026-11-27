@@ -16,8 +16,8 @@ function WorkspaceRouter() {
 
   if (loadingInitial) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-slate-700 border-t-indigo-600 animate-spin" />
+      <div className="min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-zinc-300 dark:border-zinc-800 border-t-blue-600 animate-spin" />
       </div>
     );
   }

@@ -47,35 +47,35 @@ export function languageLabel(code: string | null | undefined): string {
 export function callStatusMeta(status: string): { label: string; textClass: string } {
   switch (status) {
     case 'completed':
-      return { label: 'Completed', textClass: 'text-emerald-600 dark:text-emerald-400' };
+      return { label: 'Completed', textClass: 'text-blue-600 dark:text-blue-400' };
     case 'answered':
-      return { label: 'Answered', textClass: 'text-emerald-600 dark:text-emerald-400' };
+      return { label: 'Answered', textClass: 'text-blue-600 dark:text-blue-400' };
     case 'ringing':
-      return { label: 'Ringing', textClass: 'text-indigo-600 dark:text-indigo-400' };
+      return { label: 'Ringing', textClass: 'text-blue-600 dark:text-blue-400' };
     case 'initiated':
-      return { label: 'Initiated', textClass: 'text-indigo-600 dark:text-indigo-400' };
+      return { label: 'Initiated', textClass: 'text-blue-600 dark:text-blue-400' };
     case 'queued':
-      return { label: 'Queued', textClass: 'text-slate-600 dark:text-slate-300' };
+      return { label: 'Queued', textClass: 'text-zinc-600 dark:text-zinc-300' };
     case 'scheduled':
-      return { label: 'Scheduled', textClass: 'text-slate-600 dark:text-slate-300' };
+      return { label: 'Scheduled', textClass: 'text-zinc-600 dark:text-zinc-300' };
     case 'retrying':
-      return { label: 'Retrying', textClass: 'text-amber-600 dark:text-amber-400' };
+      return { label: 'Retrying', textClass: 'text-zinc-700 dark:text-zinc-300' };
     case 'no_answer':
-      return { label: 'No Answer', textClass: 'text-amber-600 dark:text-amber-400' };
+      return { label: 'No Answer', textClass: 'text-zinc-600 dark:text-zinc-400' };
     case 'busy':
-      return { label: 'Busy', textClass: 'text-amber-600 dark:text-amber-400' };
+      return { label: 'Busy', textClass: 'text-zinc-600 dark:text-zinc-400' };
     case 'failed':
       return { label: 'Failed', textClass: 'text-red-600 dark:text-red-400' };
     case 'cancelled':
-      return { label: 'Cancelled', textClass: 'text-slate-500 dark:text-slate-400' };
+      return { label: 'Cancelled', textClass: 'text-zinc-500 dark:text-zinc-400' };
     default:
-      return { label: status, textClass: 'text-slate-600 dark:text-slate-400' };
+      return { label: status, textClass: 'text-zinc-600 dark:text-zinc-400' };
   }
 }
 
 export function certStatusMeta(status: string, daysUntilExpiry?: number): { label: string; textClass: string } {
   if (status === 'renewed') {
-    return { label: 'Renewed', textClass: 'text-emerald-600 dark:text-emerald-400' };
+    return { label: 'Renewed', textClass: 'text-blue-600 dark:text-blue-400' };
   }
   if (status === 'expired' || (daysUntilExpiry !== undefined && daysUntilExpiry < 0)) {
     const overdue = daysUntilExpiry !== undefined ? Math.abs(daysUntilExpiry) : 0;
@@ -85,15 +85,15 @@ export function certStatusMeta(status: string, daysUntilExpiry?: number): { labe
     };
   }
   if (status === 'expiring_today' || daysUntilExpiry === 0) {
-    return { label: 'Expires today', textClass: 'text-amber-600 dark:text-amber-400' };
+    return { label: 'Expires today', textClass: 'text-blue-600 dark:text-blue-400' };
   }
   if (status === 'expiring_soon' || (daysUntilExpiry !== undefined && daysUntilExpiry <= 7)) {
     return {
       label: daysUntilExpiry !== undefined ? `Due in ${daysUntilExpiry}d` : 'Expiring soon',
-      textClass: 'text-amber-600 dark:text-amber-400',
+      textClass: 'text-zinc-800 dark:text-zinc-200',
     };
   }
-  return { label: 'Active', textClass: 'text-emerald-600 dark:text-emerald-400' };
+  return { label: 'Active', textClass: 'text-blue-600 dark:text-blue-400' };
 }
 
 export function todayIsoDate(): string {

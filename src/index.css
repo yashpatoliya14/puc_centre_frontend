@@ -2,33 +2,33 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fafafa;
+  --foreground: #09090b;
   --surface: #ffffff;
   --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #e2e8f0;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --primary: #4f46e5;
+  --card-foreground: #09090b;
+  --border: #e4e4e7;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
   --destructive: #dc2626;
-  --ring: #6366f1;
+  --ring: #2563eb;
 }
 
 .dark {
-  --background: #090d16;
-  --foreground: #f1f5f9;
-  --surface: #111827;
-  --card: #111827;
-  --card-foreground: #f8fafc;
-  --border: #1e293b;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --primary: #6366f1;
+  --background: #000000;
+  --foreground: #fafafa;
+  --surface: #0a0a0c;
+  --card: #0e0e11;
+  --card-foreground: #fafafa;
+  --border: #27272a;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --primary: #3b82f6;
   --primary-foreground: #ffffff;
   --destructive: #ef4444;
-  --ring: #818cf8;
+  --ring: #3b82f6;
 }
 
 @layer base {
@@ -43,25 +43,25 @@
   html {
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 17.5px;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #fafafa;
+    color: #09090b;
   }
 
   html.dark {
-    background-color: #090d16;
-    color: #f8fafc;
+    background-color: #000000;
+    color: #fafafa;
   }
 
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #fafafa;
+    color: #09090b;
     margin: 0;
   }
 
   html.dark body,
   body.dark {
-    background-color: #090d16;
-    color: #f8fafc;
+    background-color: #000000;
+    color: #fafafa;
     letter-spacing: 0.005em;
   }
 
@@ -85,7 +85,7 @@
 
   ::selection,
   ::-moz-selection {
-    background-color: #4f46e5;
+    background-color: #2563eb;
     color: #ffffff;
   }
 
@@ -93,23 +93,23 @@
   html.dark ::selection,
   .dark ::-moz-selection,
   html.dark ::-moz-selection {
-    background-color: #818cf8;
-    color: #0b0d12;
+    background-color: #3b82f6;
+    color: #ffffff;
   }
 
   select option {
     background-color: #ffffff;
-    color: #0f172a;
+    color: #09090b;
   }
 
   .dark select option,
   html.dark select option {
-    background-color: #11141c;
-    color: #f1f5f9;
+    background-color: #0e0e11;
+    color: #fafafa;
   }
 
   select option:checked {
-    background-color: #4f46e5;
+    background-color: #2563eb;
     color: #ffffff;
   }
 }

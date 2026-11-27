@@ -219,36 +219,36 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="max-w-xl w-full max-h-[90vh] overflow-hidden p-0 gap-0 dark:bg-[#111827] dark:border-slate-800">
+      <DialogContent className="max-w-xl w-full max-h-[90vh] overflow-hidden p-0 gap-0 dark:bg-[#0e0e11] dark:border-zinc-800">
         {/* Top Executive Header */}
-        <DialogHeader className="px-6 pt-5 pb-4 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-indigo-50/80 via-slate-50 to-white dark:from-indigo-950/40 dark:via-[#111827] dark:to-[#0f172a]">
+        <DialogHeader className="px-6 pt-5 pb-4 border-b border-zinc-200 dark:border-zinc-800 bg-gradient-to-r from-blue-50/70 via-zinc-50 to-white dark:from-blue-950/30 dark:via-[#0e0e11] dark:to-[#09090b]">
           <div className="flex items-center gap-4 pr-8">
-            <Avatar className="h-14 w-14 bg-indigo-600 dark:bg-indigo-500 text-white shadow-md shadow-indigo-500/20 ring-4 ring-white dark:ring-slate-900 shrink-0">
+            <Avatar className="h-14 w-14 bg-blue-600 text-white shadow-md shadow-blue-600/20 ring-4 ring-white dark:ring-black shrink-0">
               <AvatarFallback className="text-lg font-bold bg-transparent text-white">
                 {getInitials(tenant?.ownerName || user?.fullName)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 text-left">
               <div className="flex flex-wrap items-center gap-2">
-                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">
+                <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white truncate">
                   {tenant?.businessName || t('profileTitle')}
                 </DialogTitle>
-                <Badge className="text-[10px] uppercase tracking-wide px-2 py-0 bg-indigo-600/10 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-700/60">
+                <Badge className="text-[10px] uppercase tracking-wide px-2 py-0 bg-blue-600/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                   {user?.role || 'owner'}
                 </Badge>
                 {user?.emailVerified ? (
-                  <Badge className="text-[10px] px-2 py-0 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 gap-1">
+                  <Badge className="text-[10px] px-2 py-0 bg-blue-600 text-white gap-1">
                     <CheckCircle2 className="w-3 h-3" />
                     Verified
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="text-[10px] px-2 py-0 text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-800 gap-1">
+                  <Badge variant="outline" className="text-[10px] px-2 py-0 text-zinc-600 border-zinc-300 dark:text-zinc-300 dark:border-zinc-700 gap-1">
                     <AlertCircle className="w-3 h-3" />
                     Unverified
                   </Badge>
                 )}
               </div>
-              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 truncate">
                 {tenant?.ownerName || user?.fullName} • {user?.email}
               </DialogDescription>
             </div>
@@ -261,7 +261,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
           onValueChange={(v) => setActiveTab(v as 'profile' | 'preferences' | 'security')}
           className="flex flex-col flex-1 overflow-hidden"
         >
-          <div className="px-6 pt-3 pb-2 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-900/40">
+          <div className="px-6 pt-3 pb-2 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-black/40">
             <TabsList className="grid w-full grid-cols-3 h-9">
               <TabsTrigger value="profile" className="text-xs font-semibold gap-1.5 cursor-pointer">
                 <Building2 className="w-3.5 h-3.5" />
@@ -285,7 +285,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1.5">
                     <Label htmlFor="prof-center" className="text-xs font-semibold flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                       {t('pucCenterName')} *
                     </Label>
                     <Input
@@ -300,7 +300,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
 
                   <div className="space-y-1.5">
                     <Label htmlFor="prof-owner" className="text-xs font-semibold flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                       {t('ownerName')} *
                     </Label>
                     <Input
@@ -317,7 +317,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1.5">
                     <Label htmlFor="prof-email" className="text-xs font-semibold flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <Mail className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                       {t('emailAddress')} *
                     </Label>
                     <Input
@@ -334,13 +334,13 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="prof-mobile" className="text-xs font-semibold flex items-center gap-1.5">
-                        <Phone className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <Phone className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         {t('mobileNumber')}
                       </Label>
-                      <span className="text-[10px] text-slate-400">{t('optional')}</span>
+                      <span className="text-[10px] text-zinc-400">{t('optional')}</span>
                     </div>
                     <div className="flex">
-                      <span className="inline-flex items-center px-2.5 rounded-l-md border border-r-0 border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/70 text-xs font-mono text-slate-500">
+                      <span className="inline-flex items-center px-2.5 rounded-l-md border border-r-0 border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-xs font-mono text-zinc-500">
                         +91
                       </span>
                       <Input
@@ -356,7 +356,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
 
                 <div className="space-y-1.5">
                   <Label htmlFor="prof-address" className="text-xs font-semibold flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     Centre Location / Address
                   </Label>
                   <Input
@@ -374,14 +374,14 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
             <TabsContent value="preferences" className="mt-0 space-y-5">
               <div className="space-y-2.5">
                 <Label className="text-xs font-semibold flex items-center gap-1.5">
-                  <Moon className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <Moon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   {t('theme')}
                 </Label>
                 <div className="grid grid-cols-3 gap-2.5">
                   {(
                     [
-                      { id: 'light', label: t('themeLight'), desc: 'Crisp bright UI', icon: Sun },
-                      { id: 'dark', label: t('themeDark'), desc: 'Deep slate UI', icon: Moon },
+                      { id: 'light', label: t('themeLight'), desc: 'Crisp white UI', icon: Sun },
+                      { id: 'dark', label: 'Black', desc: 'Pure black UI', icon: Moon },
                       { id: 'system', label: 'System', desc: 'Sync with OS', icon: Monitor },
                     ] as { id: ThemePreference; label: string; desc: string; icon: React.ComponentType<{ className?: string }> }[]
                   ).map((item) => {
@@ -394,15 +394,15 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                         onClick={() => applyTheme(item.id)}
                         className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           active
-                            ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500 shadow-sm'
-                            : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-200'
                         }`}
                       >
                         <Icon className="w-4 h-4" />
                         <span className="text-xs font-semibold mt-0.5">{item.label}</span>
                         <span
                           className={`text-[10px] ${
-                            active ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'
+                            active ? 'text-blue-100' : 'text-zinc-500 dark:text-zinc-400'
                           }`}
                         >
                           {item.desc}
@@ -413,9 +413,9 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+              <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2.5">
                 <Label className="text-xs font-semibold flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <Globe className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   {t('language')}
                 </Label>
                 <div className="grid grid-cols-3 gap-2.5">
@@ -434,14 +434,14 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                         onClick={() => setLang(item.code)}
                         className={`flex flex-col items-start gap-0.5 p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           active
-                            ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500 shadow-sm'
-                            : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-200'
                         }`}
                       >
                         <span className="text-xs font-semibold">{item.label}</span>
                         <span
                           className={`text-[10px] ${
-                            active ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'
+                            active ? 'text-blue-100' : 'text-zinc-500 dark:text-zinc-400'
                           }`}
                         >
                           {item.sub}
@@ -458,13 +458,13 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
               <form id="profile-password-form" onSubmit={handleChangePassword} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold flex items-center gap-1.5">
-                    <KeyRound className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <KeyRound className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     Update Account Password
                   </Label>
                   <button
                     type="button"
                     onClick={() => setShowPasswords((v) => !v)}
-                    className="text-[11px] font-medium text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 inline-flex items-center gap-1 cursor-pointer"
+                    className="text-[11px] font-medium text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1 cursor-pointer"
                   >
                     {showPasswords ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                     {showPasswords ? 'Hide' : 'Show'}
@@ -498,8 +498,8 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                         key={c.label}
                         className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${
                           c.ok
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
-                            : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
+                            : 'bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:border-zinc-800'
                         }`}
                       >
                         {c.ok ? '✓ ' : '• '}
@@ -510,38 +510,38 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                 )}
               </form>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+              <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold flex items-center gap-1.5">
-                    <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <Laptop className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     Active Login Sessions ({sessions.length})
                   </Label>
-                  <span className="text-[11px] text-slate-400">30-day session</span>
+                  <span className="text-[11px] text-zinc-400">30-day session</span>
                 </div>
 
                 {loadingSessions ? (
-                  <p className="text-xs text-slate-400 py-2">Loading active sessions...</p>
+                  <p className="text-xs text-zinc-400 py-2">Loading active sessions...</p>
                 ) : sessions.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-2">No active sessions found.</p>
+                  <p className="text-xs text-zinc-400 py-2">No active sessions found.</p>
                 ) : (
                   <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                     {sessions.map((s) => (
                       <div
                         key={s.id}
-                        className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 text-xs"
+                        className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 text-xs"
                       >
                         <div className="min-w-0">
-                          <div className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
+                          <div className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 truncate">
                             <span className="truncate max-w-[230px]">
                               {s.user_agent || 'Web Session'}
                             </span>
                             {s.isCurrent && (
-                              <Badge className="text-[9px] px-1.5 py-0 bg-emerald-600 text-white">
+                              <Badge className="text-[9px] px-1.5 py-0 bg-blue-600 text-white">
                                 This Device
                               </Badge>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                          <div className="text-[10px] text-zinc-500 font-mono mt-0.5">
                             IP: {s.ip_address || '—'} • Expires {s.expires_at?.slice(0, 10)}
                           </div>
                         </div>
@@ -552,7 +552,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                             size="icon-sm"
                             onClick={() => handleRevokeSession(s.id)}
                             title="Revoke session"
-                            className="h-7 w-7 text-slate-400 hover:text-red-600 cursor-pointer shrink-0"
+                            className="h-7 w-7 text-zinc-400 hover:text-red-600 cursor-pointer shrink-0"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -567,7 +567,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
         </Tabs>
 
         {/* Sticky Footer */}
-        <div className="px-6 py-3.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-between gap-3">
+        <div className="px-6 py-3.5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-[#09090b] flex items-center justify-between gap-3">
           <Button
             type="button"
             variant="outline"
@@ -597,7 +597,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                 form="profile-details-form"
                 size="sm"
                 disabled={saving}
-                className="gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 cursor-pointer"
+                className="gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 {saving ? t('saving') : t('saveProfile')}
@@ -610,7 +610,7 @@ export function ProfileModal({ open, onOpenChange, trigger }: ProfileModalProps)
                 form="profile-password-form"
                 size="sm"
                 disabled={changingPassword}
-                className="gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-400 cursor-pointer"
+                className="gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
               >
                 <KeyRound className="w-3.5 h-3.5" />
                 {changingPassword ? 'Updating...' : 'Update Password'}

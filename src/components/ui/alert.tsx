@@ -8,15 +8,15 @@ const alertVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-slate-50 text-slate-900 border-slate-200 dark:bg-slate-900/60 dark:text-slate-100 dark:border-slate-800',
+          'bg-zinc-50 text-zinc-900 border-zinc-200 dark:bg-zinc-900/60 dark:text-zinc-100 dark:border-zinc-800',
         destructive:
           'border-red-200 bg-red-50 text-red-900 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200 [&>svg]:text-red-600',
         success:
-          'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200 [&>svg]:text-emerald-600',
+          'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 [&>svg]:text-blue-600',
         warning:
-          'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200 [&>svg]:text-amber-600',
+          'border-zinc-300 bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 [&>svg]:text-zinc-700 dark:[&>svg]:text-zinc-300',
         info:
-          'border-indigo-200 bg-indigo-50 text-indigo-900 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-200 [&>svg]:text-indigo-600',
+          'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 [&>svg]:text-blue-600',
       },
     },
     defaultVariants: {

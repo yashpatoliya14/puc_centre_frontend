@@ -364,26 +364,26 @@ export function PucScannerPanel({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/60 dark:from-slate-900/90 dark:to-slate-900/40 p-4 sm:p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-gradient-to-b from-white to-zinc-50/60 dark:from-[#0e0e11] dark:to-[#09090b] p-4 sm:p-5 shadow-xs space-y-4">
       {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-100 dark:border-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="h-8 w-8 rounded-xl bg-blue-50 dark:bg-blue-950/70 border border-blue-100 dark:border-blue-900/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
             <Zap className="h-4 w-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+              <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white">
                 PDF & Image Certificate Extractor
               </span>
               <Badge
                 variant="outline"
-                className="text-[10px] py-0 px-2 font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/40"
+                className="text-[10px] py-0 px-2 font-semibold text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/40"
               >
                 PDF & Image Bulk Enabled
               </Badge>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               Upload single or multiple Parivahan PDFs and certificate photos to extract details automatically
             </p>
           </div>
@@ -392,15 +392,15 @@ export function PucScannerPanel({
 
       {/* 2. Success Banner (Single File) */}
       {extractedSummary && (
-        <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs shadow-2xs animate-in fade-in duration-200">
+        <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 text-xs shadow-2xs animate-in fade-in duration-200">
           <div className="flex items-center gap-2.5 truncate">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
             <span className="font-semibold truncate">{extractedSummary}</span>
           </div>
           <button
             type="button"
             onClick={() => setExtractedSummary(null)}
-            className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:underline cursor-pointer shrink-0 flex items-center gap-1"
+            className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 hover:underline cursor-pointer shrink-0 flex items-center gap-1"
           >
             <X className="h-3.5 w-3.5" />
             Dismiss
@@ -441,17 +441,17 @@ export function PucScannerPanel({
             }}
             className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all cursor-pointer select-none ${
               fileDragActive
-                ? 'border-indigo-600 bg-indigo-50/50 dark:border-indigo-400 dark:bg-indigo-950/40 scale-[0.99]'
-                : 'border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/40 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50/20'
+                ? 'border-blue-600 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/40 scale-[0.99]'
+                : 'border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black hover:border-blue-400 dark:hover:border-blue-600 hover:bg-blue-50/20'
             }`}
           >
             {fileUploading ? (
               <div className="flex flex-col items-center justify-center py-2 space-y-2.5">
-                <RefreshCw className="h-9 w-9 text-indigo-600 dark:text-indigo-400 animate-spin" />
-                <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                <RefreshCw className="h-9 w-9 text-blue-600 dark:text-blue-400 animate-spin" />
+                <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100">
                   {uploadProgress || 'Extracting Certificate Details...'}
                 </span>
-                <span className="text-[11px] text-slate-500">
+                <span className="text-[11px] text-zinc-500">
                   Parsing Parivahan documents & decoding certificate data
                 </span>
               </div>
@@ -462,31 +462,31 @@ export function PucScannerPanel({
                   <div className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-xs z-10">
                     <FileText className="h-6 w-6" />
                   </div>
-                  <div className="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs">
+                  <div className="h-12 w-12 rounded-2xl bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-900/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs">
                     <ImageIcon className="h-6 w-6" />
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                  <p className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100">
                     Upload Parivahan PDF or Certificate Image
                   </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
                     Drop single or multiple files here, or{' '}
-                    <span className="font-semibold text-indigo-600 dark:text-indigo-400 underline">
+                    <span className="font-semibold text-blue-600 dark:text-blue-400 underline">
                       Browse Files
                     </span>
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-                  <Badge variant="outline" className="text-[10px] font-mono text-slate-500">
+                  <Badge variant="outline" className="text-[10px] font-mono text-zinc-500">
                     .PDF
                   </Badge>
-                  <Badge variant="outline" className="text-[10px] font-mono text-slate-500">
+                  <Badge variant="outline" className="text-[10px] font-mono text-zinc-500">
                     .JPG / .PNG / .WebP
                   </Badge>
-                  <Badge className="text-[10px] bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800">
+                  <Badge className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800">
                     ⚡ Bulk Multi-Select Enabled
                   </Badge>
                 </div>
@@ -496,11 +496,11 @@ export function PucScannerPanel({
 
           {/* BULK REGISTRATION PREVIEW & 1-CLICK ACTION TABLE */}
           {bulkList.length > 0 && (
-            <div className="rounded-xl border border-indigo-200 dark:border-indigo-900/80 bg-indigo-50/40 dark:bg-indigo-950/30 p-3 sm:p-4 space-y-3 animate-in fade-in duration-200">
+            <div className="rounded-xl border border-blue-200 dark:border-blue-900/80 bg-blue-50/40 dark:bg-blue-950/30 p-3 sm:p-4 space-y-3 animate-in fade-in duration-200">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                  <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs font-bold text-zinc-900 dark:text-white">
                     {bulkList.length} Certificates Ready to Register
                   </span>
                 </div>
@@ -521,7 +521,7 @@ export function PucScannerPanel({
                     size="sm"
                     onClick={handleBulkRegisterAll}
                     disabled={bulkRegistering}
-                    className="h-8 px-4 font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                    className="h-8 px-4 font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
                   >
                     {bulkRegistering ? (
                       <>
@@ -539,9 +539,9 @@ export function PucScannerPanel({
               </div>
 
               {/* Scrollable Mini Table */}
-              <div className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs shadow-2xs">
+              <div className="max-h-56 overflow-y-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black text-xs shadow-2xs">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-500 sticky top-0 z-10">
+                  <thead className="bg-zinc-50 dark:bg-[#0e0e11] border-b border-zinc-200 dark:border-zinc-800 text-[10px] uppercase font-bold text-zinc-500 sticky top-0 z-10">
                     <tr>
                       <th className="px-3 py-2">Plate</th>
                       <th className="px-3 py-2">Customer Name</th>
@@ -551,10 +551,10 @@ export function PucScannerPanel({
                       <th className="px-2 py-2 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-[11px]">
+                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80 text-[11px]">
                     {bulkList.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-900/60 transition-colors">
-                        <td className="px-3 py-2 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                      <tr key={idx} className="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/60 transition-colors">
+                        <td className="px-3 py-2 font-mono font-bold text-zinc-900 dark:text-white whitespace-nowrap">
                           {item.regNumber}
                         </td>
                         <td className="px-3 py-1.5 font-sans">
@@ -563,7 +563,7 @@ export function PucScannerPanel({
                             value={item.fullName || ''}
                             onChange={(e) => updateBulkItem(idx, 'fullName', e.target.value)}
                             placeholder="Owner Name"
-                            className="w-full max-w-[140px] px-2 py-1 text-xs rounded border border-transparent hover:border-slate-300 focus:border-indigo-500 bg-transparent focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-colors"
+                            className="w-full max-w-[140px] px-2 py-1 text-xs rounded border border-transparent hover:border-zinc-300 focus:border-blue-500 bg-transparent focus:bg-white dark:focus:bg-zinc-900 focus:outline-none transition-colors"
                           />
                         </td>
                         <td className="px-3 py-1.5 font-mono">
@@ -572,10 +572,10 @@ export function PucScannerPanel({
                             value={item.mobileNumber || ''}
                             onChange={(e) => updateBulkItem(idx, 'mobileNumber', e.target.value)}
                             placeholder="Mobile No"
-                            className="w-28 px-2 py-1 text-xs rounded border border-transparent hover:border-slate-300 focus:border-indigo-500 bg-transparent focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-colors"
+                            className="w-28 px-2 py-1 text-xs rounded border border-transparent hover:border-zinc-300 focus:border-blue-500 bg-transparent focus:bg-white dark:focus:bg-zinc-900 focus:outline-none transition-colors"
                           />
                         </td>
-                        <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                        <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
                           {item.vehicleType || '4W'} • {item.fuelType || 'Petrol'}
                         </td>
                         <td className="px-3 py-1.5 whitespace-nowrap">
@@ -583,7 +583,7 @@ export function PucScannerPanel({
                             type="date"
                             value={item.expiryDate || ''}
                             onChange={(e) => updateBulkItem(idx, 'expiryDate', e.target.value)}
-                            className="px-1.5 py-0.5 text-[11px] font-mono rounded border border-transparent hover:border-slate-300 focus:border-indigo-500 bg-transparent focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-colors"
+                            className="px-1.5 py-0.5 text-[11px] font-mono rounded border border-transparent hover:border-zinc-300 focus:border-blue-500 bg-transparent focus:bg-white dark:focus:bg-zinc-900 focus:outline-none transition-colors"
                           />
                         </td>
                         <td className="px-2 py-2 text-right whitespace-nowrap">
@@ -592,7 +592,7 @@ export function PucScannerPanel({
                             onClick={() => {
                               setBulkList(bulkList.filter((_, i) => i !== idx));
                             }}
-                            className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 cursor-pointer p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                            className="text-zinc-400 hover:text-red-500 dark:hover:text-red-400 cursor-pointer p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                             title="Remove"
                           >
                             <X className="h-3.5 w-3.5" />

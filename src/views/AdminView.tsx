@@ -318,26 +318,26 @@ export function AdminView() {
       case 'expired':
         return <Badge variant="destructive" className="text-[10px]">Expired</Badge>;
       case 'expiring_today':
-        return <Badge className="text-[10px] bg-amber-500 text-white">Expiring Today</Badge>;
+        return <Badge className="text-[10px] bg-blue-500 text-white">Expiring Today</Badge>;
       case 'expiring_soon':
-        return <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">Due Soon</Badge>;
+        return <Badge className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">Due Soon</Badge>;
       case 'renewed':
-        return <Badge className="text-[10px] bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">Renewed</Badge>;
+        return <Badge className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">Renewed</Badge>;
       default:
-        return <Badge className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Active</Badge>;
+        return <Badge className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">Active</Badge>;
     }
   };
 
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80 dark:border-zinc-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Admin Control Panel
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Manage all PUC centre owners, block or unblock accounts, and inspect customers owner-wise.
           </p>
         </div>
@@ -379,34 +379,34 @@ export function AdminView() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">PUC Centre Owners</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{summary.totalOwners}</p>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">PUC Centre Owners</p>
+              <p className="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{summary.totalOwners}</p>
             </div>
-            <div className="h-9 w-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Building2 className="w-4 h-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Active Owners</p>
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{summary.activeOwners}</p>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Active Owners</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{summary.activeOwners}</p>
             </div>
-            <div className="h-9 w-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Blocked Owners</p>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Blocked Owners</p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{summary.blockedOwners}</p>
             </div>
             <div className="h-9 w-9 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center">
@@ -415,13 +415,13 @@ export function AdminView() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Customers</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{summary.totalCustomers}</p>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Total Customers</p>
+              <p className="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{summary.totalCustomers}</p>
             </div>
-            <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </CardContent>
@@ -429,12 +429,12 @@ export function AdminView() {
       </div>
 
       {/* SECTION 1: ALL PUC CENTRE OWNERS */}
-      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+      <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
         <CardHeader className="p-4 sm:p-5 pb-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-slate-400" />
+                <Building2 className="w-4 h-4 text-zinc-400" />
                 PUC Centre Owners
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
@@ -444,7 +444,7 @@ export function AdminView() {
 
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-56">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <Input
                   value={ownerSearch}
                   onChange={(e) => setOwnerSearch(e.target.value)}
@@ -453,7 +453,7 @@ export function AdminView() {
                 />
               </div>
 
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 text-xs">
+              <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-lg p-0.5 text-xs">
                 {(['all', 'active', 'blocked'] as const).map((st) => (
                   <button
                     key={st}
@@ -461,8 +461,8 @@ export function AdminView() {
                     onClick={() => setStatusFilter(st)}
                     className={`px-2.5 py-1 rounded-md font-medium capitalize transition-colors cursor-pointer ${
                       statusFilter === st
-                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                        ? 'bg-white dark:bg-[#0e0e11] text-zinc-900 dark:text-white shadow-2xs'
+                        : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
                     }`}
                   >
                     {st}
@@ -477,7 +477,7 @@ export function AdminView() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50/70 dark:bg-slate-900/60">
+                <TableRow className="bg-zinc-50/70 dark:bg-[#0e0e11]">
                   <TableHead>PUC Centre</TableHead>
                   <TableHead>Owner</TableHead>
                   <TableHead>Contact</TableHead>
@@ -489,13 +489,13 @@ export function AdminView() {
               <TableBody>
                 {loadingOwners ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-xs text-slate-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-xs text-zinc-500">
                       Loading PUC centre owners...
                     </TableCell>
                   </TableRow>
                 ) : filteredOwners.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-xs text-slate-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-xs text-zinc-500">
                       No PUC centre owners match your filter.
                     </TableCell>
                   </TableRow>
@@ -508,31 +508,31 @@ export function AdminView() {
                         key={owner.id}
                         className={
                           isSelected
-                            ? 'bg-indigo-50/50 dark:bg-indigo-950/20'
-                            : 'hover:bg-slate-50/60 dark:hover:bg-slate-900/40'
+                            ? 'bg-blue-50/50 dark:bg-blue-950/20'
+                            : 'hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40'
                         }
                       >
                         <TableCell>
-                          <div className="font-semibold text-xs text-slate-900 dark:text-white">
+                          <div className="font-semibold text-xs text-zinc-900 dark:text-white">
                             {owner.businessName}
                           </div>
                           {owner.address && (
-                            <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5 max-w-[220px] truncate">
+                            <div className="text-[11px] text-zinc-500 flex items-center gap-1 mt-0.5 max-w-[220px] truncate">
                               <MapPin className="w-3 h-3 shrink-0" />
                               <span className="truncate">{owner.address}</span>
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                        <TableCell className="text-xs font-medium text-zinc-700 dark:text-zinc-200">
                           {owner.ownerName}
                         </TableCell>
                         <TableCell>
-                          <div className="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                            <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                          <div className="text-[11px] text-zinc-600 dark:text-zinc-300 flex items-center gap-1">
+                            <Mail className="w-3 h-3 text-zinc-400 shrink-0" />
                             <span>{owner.email}</span>
                           </div>
-                          <div className="text-[11px] font-mono text-slate-500 flex items-center gap-1 mt-0.5">
-                            <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                          <div className="text-[11px] font-mono text-zinc-500 flex items-center gap-1 mt-0.5">
+                            <Phone className="w-3 h-3 text-zinc-400 shrink-0" />
                             <span>{owner.mobileNumber}</span>
                           </div>
                         </TableCell>
@@ -548,7 +548,7 @@ export function AdminView() {
                               Blocked
                             </Badge>
                           ) : (
-                            <Badge className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 gap-1">
+                            <Badge className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 gap-1">
                               <CheckCircle2 className="w-3 h-3" />
                               Active
                             </Badge>
@@ -573,7 +573,7 @@ export function AdminView() {
                                 size="sm"
                                 disabled={busy}
                                 onClick={() => handleToggleBlock(owner)}
-                                className="h-7 px-2.5 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white gap-1 cursor-pointer"
+                                className="h-7 px-2.5 text-[11px] bg-blue-600 hover:bg-blue-700 text-white gap-1 cursor-pointer"
                               >
                                 <CheckCircle2 className="w-3 h-3" />
                                 {busy ? 'Updating...' : 'Unblock'}
@@ -604,12 +604,12 @@ export function AdminView() {
       </Card>
 
       {/* SECTION 2: OWNER-WISE CUSTOMERS */}
-      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+      <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
         <CardHeader className="p-4 sm:p-5 pb-3">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Users className="w-4 h-4 text-slate-400" />
+                <Users className="w-4 h-4 text-zinc-400" />
                 Owner-Wise Customers
                 {selectedOwnerInfo && (
                   <Badge variant="secondary" className="text-[11px]">
@@ -626,7 +626,7 @@ export function AdminView() {
               <select
                 value={selectedOwnerId}
                 onChange={(e) => setSelectedOwnerId(e.target.value)}
-                className="h-8 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 text-xs font-medium text-slate-700 dark:text-slate-200"
+                className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0e0e11] px-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-200"
               >
                 {owners.length === 0 ? (
                   <option value="">No owners available</option>
@@ -640,7 +640,7 @@ export function AdminView() {
               </select>
 
               <div className="relative w-full sm:w-52">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <Input
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
@@ -656,7 +656,7 @@ export function AdminView() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50/70 dark:bg-slate-900/60">
+                <TableRow className="bg-zinc-50/70 dark:bg-[#0e0e11]">
                   <TableHead>Customer</TableHead>
                   <TableHead>Vehicle</TableHead>
                   <TableHead>PUC Certificate</TableHead>
@@ -667,48 +667,48 @@ export function AdminView() {
               <TableBody>
                 {loadingCustomers ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-xs text-slate-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-xs text-zinc-500">
                       Loading customers...
                     </TableCell>
                   </TableRow>
                 ) : !selectedOwnerId ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-xs text-slate-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-xs text-zinc-500">
                       Select an owner above to view their customers.
                     </TableCell>
                   </TableRow>
                 ) : filteredCustomers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-xs text-slate-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-xs text-zinc-500">
                       No customers found for this PUC centre owner.
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredCustomers.map((c) => (
-                    <TableRow key={c.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-900/40">
+                    <TableRow key={c.id} className="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40">
                       <TableCell>
-                        <div className="font-semibold text-xs text-slate-900 dark:text-white">
+                        <div className="font-semibold text-xs text-zinc-900 dark:text-white">
                           {c.fullName}
                         </div>
-                        <div className="text-[11px] font-mono text-slate-500 mt-0.5">
+                        <div className="text-[11px] font-mono text-zinc-500 mt-0.5">
                           {c.mobileNumber}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-mono font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
-                          <Car className="w-3.5 h-3.5 text-slate-400" />
+                        <div className="font-mono font-bold text-xs text-zinc-900 dark:text-white flex items-center gap-1.5">
+                          <Car className="w-3.5 h-3.5 text-zinc-400" />
                           <span>{c.vehicleRegistrationNumber || '—'}</span>
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">
+                        <div className="text-[11px] text-zinc-500 mt-0.5">
                           {c.vehicleType} • {c.fuelType}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-xs font-mono text-slate-700 dark:text-slate-300">
+                        <div className="text-xs font-mono text-zinc-700 dark:text-zinc-300">
                           {c.expiryDate || '—'}
                         </div>
                         {c.certificateNumber && (
-                          <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                          <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
                             {c.certificateNumber}
                           </div>
                         )}
@@ -717,15 +717,15 @@ export function AdminView() {
                       <TableCell>
                         {c.insurance ? (
                           <div>
-                            <div className="text-xs text-slate-700 dark:text-slate-300">
+                            <div className="text-xs text-zinc-700 dark:text-zinc-300">
                               {c.insurance.insuranceCompany}
                             </div>
-                            <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                            <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
                               {c.insurance.policyNumber} • Exp: {c.insurance.expiryDate}
                             </div>
                           </div>
                         ) : (
-                        <span className="text-xs text-slate-400">—</span>
+                        <span className="text-xs text-zinc-400">—</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -738,10 +738,10 @@ export function AdminView() {
       </Card>
 
       {/* SECTION 3: ADMIN ACCOUNTS & CREATE ANOTHER ADMIN */}
-      <Card className="border-slate-200/80 dark:border-slate-800 shadow-2xs">
+      <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
         <CardHeader className="p-4 sm:p-5 pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             Admin Accounts ({admins.length})
           </CardTitle>
           <CardDescription className="text-xs mt-0.5">
@@ -749,12 +749,12 @@ export function AdminView() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-5 pt-2 space-y-5">
-          <form onSubmit={handleCreateAdmin} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50">
+          <form onSubmit={handleCreateAdmin} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-[#0e0e11]">
             <Input
               placeholder="Full Name *"
               value={adminFullName}
               onChange={(e) => setAdminFullName(e.target.value)}
-              className="h-9 text-xs bg-white dark:bg-slate-950"
+              className="h-9 text-xs bg-white dark:bg-black"
               required
             />
             <Input
@@ -762,14 +762,14 @@ export function AdminView() {
               placeholder="Strong Admin ID (email) *"
               value={adminEmail}
               onChange={(e) => setAdminEmail(e.target.value)}
-              className="h-9 text-xs bg-white dark:bg-slate-950"
+              className="h-9 text-xs bg-white dark:bg-black"
               required
             />
             <Input
               placeholder="Mobile (10 digits) *"
               value={adminMobile}
               onChange={(e) => setAdminMobile(e.target.value)}
-              className="h-9 text-xs bg-white dark:bg-slate-950"
+              className="h-9 text-xs bg-white dark:bg-black"
               required
             />
             <div className="flex gap-1.5">
@@ -778,7 +778,7 @@ export function AdminView() {
                 placeholder="Strong Password *"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                className="h-9 text-xs bg-white dark:bg-slate-950 font-mono"
+                className="h-9 text-xs bg-white dark:bg-black font-mono"
                 required
               />
               <Button
@@ -795,17 +795,17 @@ export function AdminView() {
             <Button
               type="submit"
               disabled={creatingAdmin}
-              className="h-9 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-500 dark:hover:bg-indigo-600 gap-1.5 cursor-pointer"
+              className="h-9 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 gap-1.5 cursor-pointer"
             >
               <UserPlus className="w-3.5 h-3.5" />
               {creatingAdmin ? 'Creating...' : 'Create Admin'}
             </Button>
           </form>
 
-          <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
+          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50/70 dark:bg-slate-900/60">
+                <TableRow className="bg-zinc-50/70 dark:bg-[#0e0e11]">
                   <TableHead className="text-[11px]">Admin Name</TableHead>
                   <TableHead className="text-[11px]">Admin ID (Email)</TableHead>
                   <TableHead className="text-[11px]">Mobile</TableHead>
@@ -816,32 +816,32 @@ export function AdminView() {
               <TableBody>
                 {loadingAdmins ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6 text-xs text-slate-400">
+                    <TableCell colSpan={5} className="text-center py-6 text-xs text-zinc-400">
                       Loading admins...
                     </TableCell>
                   </TableRow>
                 ) : admins.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6 text-xs text-slate-400">
+                    <TableCell colSpan={5} className="text-center py-6 text-xs text-zinc-400">
                       No additional admins found.
                     </TableCell>
                   </TableRow>
                 ) : (
                   admins.map((a) => (
                     <TableRow key={a.id}>
-                      <TableCell className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                      <TableCell className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                         {a.fullName}
                       </TableCell>
-                      <TableCell className="text-xs font-mono text-slate-600 dark:text-slate-300">
+                      <TableCell className="text-xs font-mono text-zinc-600 dark:text-zinc-300">
                         {a.email}
                       </TableCell>
-                      <TableCell className="text-xs font-mono text-slate-600 dark:text-slate-300">
+                      <TableCell className="text-xs font-mono text-zinc-600 dark:text-zinc-300">
                         {a.mobileNumber}
                       </TableCell>
-                      <TableCell className="text-xs text-slate-500">
+                      <TableCell className="text-xs text-zinc-500">
                         {a.createdAt ? a.createdAt.slice(0, 10) : '—'}
                       </TableCell>
-                      <TableCell className="text-xs text-slate-500">
+                      <TableCell className="text-xs text-zinc-500">
                         {a.lastLoginAt ? a.lastLoginAt.slice(0, 16).replace('T', ' ') : 'Never'}
                       </TableCell>
                     </TableRow>
