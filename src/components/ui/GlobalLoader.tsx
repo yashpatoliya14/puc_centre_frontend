@@ -5,26 +5,42 @@ interface GlobalLoaderProps {
   label?: string;
 }
 
-export function GlobalLoader({ fullScreen = true, label = 'Loading...' }: GlobalLoaderProps) {
+export function GlobalLoader({ fullScreen = true, label }: GlobalLoaderProps) {
   return (
     <div
       className={
         fullScreen
-          ? 'min-h-screen w-full bg-zinc-50 dark:bg-black flex items-center justify-center p-4'
-          : 'min-h-[320px] w-full flex items-center justify-center p-6'
+          ? 'min-h-screen w-full bg-zinc-50 dark:bg-black flex flex-col items-center justify-center gap-3 p-4'
+          : 'min-h-[280px] w-full flex flex-col items-center justify-center gap-3 p-6'
       }
       role="status"
       aria-live="polite"
     >
-      <div className="flex flex-col items-center gap-3.5 px-7 py-6 rounded-2xl bg-white dark:bg-[#0e0e11] border border-zinc-200 dark:border-zinc-800 shadow-lg">
-        <div className="relative h-11 w-11 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-[3px] border-blue-100 dark:border-blue-950 border-t-blue-600 dark:border-t-blue-400 animate-spin" />
-          <div className="h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-        </div>
-        <span className="text-xs font-semibold tracking-wide text-zinc-700 dark:text-zinc-200">
+      <svg
+        className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle
+          className="stroke-zinc-200 dark:stroke-zinc-800"
+          cx="12"
+          cy="12"
+          r="10"
+          strokeWidth="2.75"
+        />
+        <path
+          className="stroke-current"
+          d="M12 2a10 10 0 0 1 10 10"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+        />
+      </svg>
+      {label && (
+        <span className="text-xs font-medium tracking-wide text-zinc-500 dark:text-zinc-400">
           {label}
         </span>
-      </div>
+      )}
     </div>
   );
 }
